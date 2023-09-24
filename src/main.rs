@@ -16,7 +16,7 @@ async fn main() {
 
         // highlight tile under mouse
         match display::mouse_tile_position() {
-            Some((r, c)) => display::highlight_tile(r, c),
+            Some(tile) => display::highlight_tile(tile),
             None => (),
         }
 

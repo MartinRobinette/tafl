@@ -28,6 +28,19 @@ pub struct Game {
 
 //pub fn takeTurn()
 
+pub struct Tile {
+    pub c: usize,
+    pub r: usize,
+}
+impl From<(i32, i32)> for Tile {
+    fn from((row, col): (i32, i32)) -> Self {
+        Tile {
+            r: row as usize,
+            c: col as usize,
+        }
+    }
+}
+
 const BOARD_SIZE: usize = 7;
 pub type Board = [[PieceType; BOARD_SIZE]; BOARD_SIZE];
 
@@ -43,4 +56,8 @@ pub fn new_board() -> Board {
         [0, 0, 0, 1, 0, 0, 0],
     ];
     array.map(|row| row.map(|cell| cell.into()))
+}
+
+pub fn valid_move() -> bool {
+    false
 }

@@ -12,9 +12,9 @@ const NUM_TILES: i32 = 7;
 const TILE_SIZE: f32 = BOARD_SIZE / NUM_TILES as f32;
 const PIECE_SIZE: f32 = TILE_SIZE / 2.5;
 
-pub fn highlight_tile(r: usize, c: usize) {
-    let x = tile_position(r) + 2.0;
-    let y = tile_position(c) + 2.0;
+pub fn highlight_tile(tile: Tile) {
+    let x = tile_position(tile.r) + 2.0;
+    let y = tile_position(tile.c) + 2.0;
     draw_rectangle_lines(x, y, TILE_SIZE - 4.0, TILE_SIZE - 4.0, 2.0, GREEN)
 }
 
@@ -38,13 +38,12 @@ fn mouse_out_of_bounds() -> bool {
         || y > BOARD_SIZE + SCREEN_EDGE
 }
 
-pub fn mouse_tile_position() -> Option<(usize, usize)> {
+pub fn mouse_tile_position() -> Option<Tile> {
     if mouse_out_of_bounds() {
         return None;
     }
     let (x, y) = mouse_position();
-    let (r, c) = (tile_index_from_mouse(x), tile_index_from_mouse(y));
-    Some((r as usize, c as usize))
+    Some((tile_index_from_mouse(x), tile_index_from_mouse(y)).into())
 }
 
 pub fn draw_board(tile_count: usize) {
