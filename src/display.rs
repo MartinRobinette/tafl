@@ -8,7 +8,8 @@ const SCREEN_WIDTH: f32 = BOARD_SIZE + 2.0 * SCREEN_EDGE;
 const TOP_BAR_HEIGHT: f32 = 28.0;
 const SCREEN_HEIGHT: f32 = BOARD_SIZE + TOP_BAR_HEIGHT + 2.0 * SCREEN_EDGE;
 
-const TILE_SIZE: f32 = BOARD_SIZE / 7.0;
+const NUM_TILES: i32 = 7;
+const TILE_SIZE: f32 = BOARD_SIZE / NUM_TILES as f32;
 const PIECE_SIZE: f32 = TILE_SIZE / 2.5;
 
 pub fn highlight_tile(r: usize, c: usize) {
@@ -25,16 +26,24 @@ pub fn tile_position(i: usize) -> f32 {
     TILE_SIZE * (i as f32) + SCREEN_EDGE
 }
 
-pub fn rev_tile_position(i: f32) -> i32 {
+fn tile_index_from_mouse(i: f32) -> i32 {
     ((i - SCREEN_EDGE - TILE_SIZE / 2.0) / TILE_SIZE).round() as i32
 }
 
-pub fn mouse_tile_position() -> Option<(usize, usize)> {
+fn mouse_out_of_bounds() -> bool {
     let (x, y) = mouse_position();
-    let (r, c) = (rev_tile_position(x), rev_tile_position(y));
-    if r < 0 || c < 0 {
-        ()
+    x < SCREEN_EDGE
+        || x > BOARD_SIZE + SCREEN_EDGE
+        || y < SCREEN_EDGE
+        || y > BOARD_SIZE + SCREEN_EDGE
+}
+
+pub fn mouse_tile_position() -> Option<(usize, usize)> {
+    if mouse_out_of_bounds() {
+        return None;
     }
+    let (x, y) = mouse_position();
+    let (r, c) = (tile_index_from_mouse(x), tile_index_from_mouse(y));
     Some((r as usize, c as usize))
 }
 

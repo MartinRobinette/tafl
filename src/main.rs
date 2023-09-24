@@ -14,12 +14,11 @@ async fn main() {
         display::draw_board(board.len());
         display::draw_pieces(&board);
 
+        // highlight tile under mouse
         match display::mouse_tile_position() {
             Some((r, c)) => display::highlight_tile(r, c),
             None => (),
         }
-
-        //        draw_circle(screen_width() - 30.0, screen_height() - 30.0, 15.0, YELLOW);
 
         next_frame().await
     }
