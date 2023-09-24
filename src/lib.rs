@@ -1,7 +1,6 @@
 pub mod display;
-pub mod tafl;
+pub mod game;
 
 pub mod preleude {
-    pub use create::display::Display;
-    pub use create::tafl::Game;
+    pub use crate::game::*;
 }

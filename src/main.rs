@@ -1,15 +1,25 @@
 use macroquad::prelude::*;
+use tafl::display;
+use tafl::game::*;
 
 #[macroquad::main("BasicShapes")]
 async fn main() {
+    let board = new_board();
+    assert_eq!(board[0][0], 0.into());
+    board.into_iter().for_each(|row| println!("{:?}", row));
+
     loop {
         clear_background(BLACK);
+        display::set_screen_size();
+        display::draw_board(board.len());
+        display::draw_pieces(&board);
 
-        draw_line(40.0, 40.0, 100.0, 200.0, 15.0, BLUE);
-        draw_rectangle(screen_width() / 2.0 - 60.0, 100.0, 120.0, 60.0, GREEN);
-        draw_circle(screen_width() - 30.0, screen_height() - 30.0, 15.0, YELLOW);
+        match display::mouse_tile_position() {
+            Some((r, c)) => display::highlight_tile(r, c),
+            None => (),
+        }
 
-        draw_text("IT WORKS!", 20.0, 20.0, 30.0, DARKGRAY);
+        //        draw_circle(screen_width() - 30.0, screen_height() - 30.0, 15.0, YELLOW);
 
         next_frame().await
     }
