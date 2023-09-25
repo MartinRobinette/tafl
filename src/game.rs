@@ -27,7 +27,7 @@ pub struct Game {
 }
 
 //pub fn takeTurn()
-
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub struct Tile {
     pub c: usize,
     pub r: usize,
@@ -38,6 +38,11 @@ impl From<(i32, i32)> for Tile {
             r: row as usize,
             c: col as usize,
         }
+    }
+}
+impl From<(usize, usize)> for Tile {
+    fn from((row, col): (usize, usize)) -> Self {
+        Tile { r: row, c: col }
     }
 }
 
@@ -58,6 +63,37 @@ pub fn new_board() -> Board {
     array.map(|row| row.map(|cell| cell.into()))
 }
 
-pub fn valid_move() -> bool {
-    false
+fn tile_on_board(tile: Tile, board: Board) -> bool {
+    tile.r < board.len() && tile.c < board.len()
+}
+
+fn tile_is_empty(tile: Tile, board: Board) -> bool {
+    matches!(board[tile.r][tile.c], PieceType::Blank)
+}
+
+fn next_tile(src: Tile, dir: (i32, i32)) -> Tile {
+    (src.r as i32 + dir.0, src.c as i32 + dir.1).into()
+}
+
+pub fn get_valid_moves(src: Tile, board: Board) -> Vec<Tile> {
+    println!("CALLED");
+    let directions: Vec<(i32, i32)> = vec![(0, -1), (0, 1), (1, 0), (-1, 0)];
+    let mut valid_moves = Vec::<Tile>::new();
+    if !tile_on_board(src, board) || tile_is_empty(src, board) {
+        return valid_moves;
+    }
+    println!("passed first check");
+    for (r, c) in &directions {
+        println!("for dir {},{}", r, c);
+        let dir = (*r, *c);
+        let mut dest = next_tile(src, dir);
+        while tile_on_board(dest, board) && tile_is_empty(dest, board) {
+            println!("while: dest {},{}", dest.r, dest.c);
+            valid_moves.push(dest);
+            dest = next_tile(dest, dir);
+        }
+    }
+    println!("debug print");
+    println!("{:?}", valid_moves);
+    valid_moves
 }
