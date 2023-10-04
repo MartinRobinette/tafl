@@ -77,12 +77,12 @@ impl Default for Game {
 impl Game {
     pub fn new() -> Self {
         Game {
-            board: new_brandubh(),
+            board: new_brandubh(), // only one board option
         }
     }
 
     pub fn board_size(&self) -> usize {
-        7
+        7 // only one bard option
     }
 
     pub fn tile_on_board(&self, tile: Tile) -> bool {
@@ -101,12 +101,11 @@ impl Game {
     }
 
     pub fn get_valid_moves(&self, src: Tile) -> Vec<Tile> {
-        let directions: Vec<(i32, i32)> = vec![(0, -1), (0, 1), (1, 0), (-1, 0)];
         let mut valid_moves = Vec::<Tile>::new();
         if !self.tile_on_board(src) || self.tile_is_empty(src) {
             return valid_moves;
         }
-        for (r, c) in &directions {
+        for (r, c) in &vec![(0, -1), (0, 1), (1, 0), (-1, 0)] {
             let dir = (*r, *c);
             let mut dest = next_tile(src, dir);
             while self.tile_on_board(dest) && self.tile_is_empty(dest) {
