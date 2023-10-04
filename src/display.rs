@@ -46,7 +46,8 @@ pub fn mouse_tile_position() -> Option<Tile> {
     Some((tile_index_from_mouse(x), tile_index_from_mouse(y)).into())
 }
 
-pub fn draw_board(tile_count: usize) {
+pub fn draw_board(game: &Game) {
+    let tile_count = game.board_size();
     for r in 0..tile_count {
         for c in 0..tile_count {
             let x = tile_position(r);
@@ -56,8 +57,8 @@ pub fn draw_board(tile_count: usize) {
     }
 }
 
-pub fn draw_pieces(board: &Board) {
-    for (r, row) in board.clone().iter().enumerate() {
+pub fn draw_pieces(game: &Game) {
+    for (r, row) in game.board.clone().iter().enumerate() {
         for (c, item) in row.iter().enumerate() {
             use PieceType::*;
             let color = match item {
