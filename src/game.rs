@@ -68,6 +68,12 @@ fn next_tile(src: Tile, dir: (i32, i32)) -> Tile {
     (src.r as i32 + dir.0, src.c as i32 + dir.1).into()
 }
 
+impl Default for Game {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Game {
     pub fn new() -> Self {
         Game {

@@ -32,10 +32,8 @@ fn tile_index_from_mouse(i: f32) -> i32 {
 
 fn mouse_out_of_bounds() -> bool {
     let (x, y) = mouse_position();
-    x < SCREEN_EDGE
-        || x > BOARD_SIZE + SCREEN_EDGE
-        || y < SCREEN_EDGE
-        || y > BOARD_SIZE + SCREEN_EDGE
+    let window_range = SCREEN_EDGE..=BOARD_SIZE + SCREEN_EDGE;
+    !window_range.contains(&x) || !window_range.contains(&y)
 }
 
 pub fn mouse_tile_position() -> Option<Tile> {
