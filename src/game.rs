@@ -22,6 +22,13 @@ impl From<i32> for PieceType {
 
 pub struct Game {
     pub board: Board,
+    // used for highlighting options and moving pieces
+    pub current_selection: Option<Tile>,
+    // ? valid_moves: Vec<Tile>,
+    pub defenders_turn: bool,
+    //temp
+    pub player_is_defender: bool,
+    // have class with sub classes for AI or user input
     // Player attacker,
     // Player defender,
 }
@@ -78,6 +85,48 @@ impl Game {
     pub fn new() -> Self {
         Game {
             board: new_brandubh(), // only one board option
+            current_selection: None,
+            defenders_turn: false,
+            player_is_defender: false,
+        }
+    }
+
+    fn move_piece(&mut self, src: Tile, dest: Tile) {
+        // might want to add validation here for valid move
+        // check end is blank, start is not blank, and start is current players piece
+        // and check valid move function
+        // could integrate selected piece into game struct to not have to recall get valid moves and ensue player piece
+        self.board[dest.r][dest.c] = self.board[src.r][src.c];
+        self.board[src.r][src.c] = PieceType::Blank;
+    }
+
+    pub fn tile_clicked(&mut self, tile: Tile) {
+        // assuming player turn
+
+        // if previous tile selected
+        if let Some(selected) = self.current_selection {
+            // if tile is valid move
+            if self.get_valid_moves(selected).contains(&tile) {
+                // move piece
+                self.move_piece(selected, tile);
+                self.current_selection = None;
+                self.defenders_turn = !self.defenders_turn;
+                // also change player_is_defender to allow for user input
+                self.player_is_defender = !self.player_is_defender;
+            } else {
+                // prev selection and non valid move
+                match self.is_player_piece(tile) {
+                    true => self.current_selection = None,
+                    false => self.current_selection = Some(tile),
+                }
+            }
+        } else {
+            println!("no prev selection");
+            // no previous tile selected
+            match self.is_player_piece(tile) {
+                true => self.current_selection = Some(tile),
+                false => self.current_selection = None,
+            }
         }
     }
 
@@ -93,11 +142,19 @@ impl Game {
         matches!(self.board[tile.r][tile.c], PieceType::Blank)
     }
 
+    /// Returns true if the tile is a defender or king
     pub fn is_defender(&self, src: Tile) -> bool {
         match self.board[src.r][src.c] {
             PieceType::Attacker | PieceType::Blank => false,
             PieceType::King | PieceType::Defender => true,
         }
+    }
+
+    pub fn is_player_piece(&self, src: Tile) -> bool {
+        if self.tile_is_empty(src) {
+            return false;
+        }
+        self.player_is_defender == self.is_defender(src)
     }
 
     pub fn get_valid_moves(&self, src: Tile) -> Vec<Tile> {
