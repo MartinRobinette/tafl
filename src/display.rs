@@ -71,3 +71,17 @@ pub fn draw_pieces(game: &Game) {
         }
     }
 }
+
+pub fn draw_game(game: &Game) {
+    clear_background(BLACK);
+    set_screen_size();
+    draw_board(game);
+    draw_pieces(game);
+
+    // Highlight moves for selected tile
+    if let Some(selected) = game.current_selection {
+        for tile in game.get_valid_moves(selected) {
+            highlight_tile(tile);
+        }
+    }
+}

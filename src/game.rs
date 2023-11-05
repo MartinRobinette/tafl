@@ -86,8 +86,8 @@ impl Game {
         Game {
             board: new_brandubh(), // only one board option
             current_selection: None,
-            defenders_turn: false,
-            player_is_defender: false,
+            defenders_turn: true,
+            player_is_defender: true,
         }
     }
 
@@ -121,7 +121,6 @@ impl Game {
                 }
             }
         } else {
-            println!("no prev selection");
             // no previous tile selected
             match self.is_player_piece(tile) {
                 true => self.current_selection = Some(tile),
