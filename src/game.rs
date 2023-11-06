@@ -26,11 +26,8 @@ pub struct Game {
     pub current_selection: Option<Tile>,
     // ? valid_moves: Vec<Tile>,
     pub defenders_turn: bool,
-    //temp
-    pub player_is_defender: bool,
-    // have class with sub classes for AI or user input
-    // Player attacker,
-    // Player defender,
+    defender_player: PlayerType,
+    attacker_player: PlayerType,
 }
 
 //pub fn takeTurn()
@@ -39,6 +36,7 @@ pub struct Tile {
     pub c: usize,
     pub r: usize,
 }
+
 impl From<(i32, i32)> for Tile {
     fn from((row, col): (i32, i32)) -> Self {
         Tile {
@@ -54,19 +52,38 @@ impl From<(usize, usize)> for Tile {
     }
 }
 
-const BOARD_SIZE: usize = 7;
+const BOARD_SIZE: usize = 11;
 pub type Board = [[PieceType; BOARD_SIZE]; BOARD_SIZE];
 
 // Brandubh style board
-fn new_brandubh() -> Board {
+// fn new_brandubh() -> Board {
+//     // 7 x 7 board
+//     let array = [
+//         [0, 0, 0, 1, 0, 0, 0],
+//         [0, 0, 0, 1, 0, 0, 0],
+//         [0, 0, 0, 2, 0, 0, 0],
+//         [1, 1, 2, 3, 2, 1, 1],
+//         [0, 0, 0, 2, 0, 0, 0],
+//         [0, 0, 0, 1, 0, 0, 0],
+//         [0, 0, 0, 1, 0, 0, 0],
+//     ];
+//     array.map(|row| row.map(|cell| cell.into()))
+// }
+
+fn new_tawlbwrdd() -> Board {
+    // 11 x 11 board
     let array = [
-        [0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 0, 2, 0, 0, 0],
-        [1, 1, 2, 3, 2, 1, 1],
-        [0, 0, 0, 2, 0, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
+        [1, 1, 0, 0, 0, 2, 0, 0, 0, 1, 1],
+        [1, 1, 2, 2, 2, 3, 2, 2, 2, 1, 1],
+        [1, 1, 0, 0, 0, 2, 0, 0, 0, 1, 1],
+        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
     ];
     array.map(|row| row.map(|cell| cell.into()))
 }
@@ -80,15 +97,35 @@ impl Default for Game {
         Self::new()
     }
 }
+#[derive(Clone, Copy)]
+enum PlayerType {
+    Human,
+    AI,
+}
 
 impl Game {
     pub fn new() -> Self {
         Game {
-            board: new_brandubh(), // only one board option
+            board: new_tawlbwrdd(), // only one board option
             current_selection: None,
-            defenders_turn: true,
-            player_is_defender: true,
+            defenders_turn: false, // attackers always make first move
+            defender_player: PlayerType::Human,
+            attacker_player: PlayerType::Human,
         }
+    }
+
+    fn friendly_piece(&self, tile: Tile) -> bool {
+        if self.tile_is_empty(tile) {
+            return false;
+        }
+        self.defenders_turn == self.is_defender(tile)
+    }
+
+    fn enemy_piece(&self, tile: Tile) -> bool {
+        if self.tile_is_empty(tile) {
+            return false;
+        }
+        self.defenders_turn != self.is_defender(tile)
     }
 
     fn move_piece(&mut self, src: Tile, dest: Tile) {
@@ -98,11 +135,43 @@ impl Game {
         // could integrate selected piece into game struct to not have to recall get valid moves and ensue player piece
         self.board[dest.r][dest.c] = self.board[src.r][src.c];
         self.board[src.r][src.c] = PieceType::Blank;
+
+        // check for captures
+        let directions = vec![(0, -1), (0, 1), (1, 0), (-1, 0)];
+        for dir in directions {
+            let next = next_tile(dest, dir);
+            let flank = next_tile(next, dir);
+
+            // capture if flanked
+            if self.tile_on_board(flank) && self.enemy_piece(next) && self.friendly_piece(flank) {
+                self.board[next.r][next.c] = PieceType::Blank;
+            }
+            // TODO:
+            // if next if king bead needs to be flanked on all four sides, depending on rule set
+            // need to check if flank is corner or throne, depending on rule set
+
+            // win conditions
+            // opponent has no move options
+            // king is captured and all defender beads are captured
+            // king bead on any of 4 corners (some rules say any edge piece)
+        }
+    }
+
+    fn current_player(&self) -> PlayerType {
+        if self.defenders_turn {
+            self.defender_player
+        } else {
+            self.attacker_player
+        }
     }
 
     pub fn tile_clicked(&mut self, tile: Tile) {
-        // assuming player turn
+        if let PlayerType::Human = self.current_player() {
+            self.player_turn(tile);
+        }
+    }
 
+    fn player_turn(&mut self, tile: Tile) {
         // if previous tile selected
         if let Some(selected) = self.current_selection {
             // if tile is valid move
@@ -111,8 +180,6 @@ impl Game {
                 self.move_piece(selected, tile);
                 self.current_selection = None;
                 self.defenders_turn = !self.defenders_turn;
-                // also change player_is_defender to allow for user input
-                self.player_is_defender = !self.player_is_defender;
             } else {
                 // prev selection and non valid move
                 match self.is_player_piece(tile) {
@@ -130,7 +197,7 @@ impl Game {
     }
 
     pub fn board_size(&self) -> usize {
-        7 // only one bard option
+        11 // only one board option currently
     }
 
     pub fn tile_on_board(&self, tile: Tile) -> bool {
@@ -153,7 +220,8 @@ impl Game {
         if self.tile_is_empty(src) {
             return false;
         }
-        self.player_is_defender == self.is_defender(src)
+
+        self.defenders_turn == self.is_defender(src)
     }
 
     pub fn get_valid_moves(&self, src: Tile) -> Vec<Tile> {
