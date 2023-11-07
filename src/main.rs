@@ -28,8 +28,8 @@ async fn main() {
         // show fps
         draw_text(format!("FPS: {}", get_fps()).as_str(), 0., 16., 32., WHITE);
 
-        // limit to 30fps
-        thread::sleep(time::Duration::from_millis(25));
+        // limit to fps
+        thread::sleep(time::Duration::from_millis(20));
 
         next_frame().await;
     }

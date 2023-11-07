@@ -1,6 +1,3 @@
-// to be trait if more board types added
-#![allow(dead_code)]
-
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum PieceType {
     Attacker,
@@ -52,41 +49,41 @@ impl From<(usize, usize)> for Tile {
     }
 }
 
-const BOARD_SIZE: usize = 11;
+const BOARD_SIZE: usize = 7; // TODO: unify board size
 pub type Board = [[PieceType; BOARD_SIZE]; BOARD_SIZE];
 
 // Brandubh style board
-// fn new_brandubh() -> Board {
-//     // 7 x 7 board
-//     let array = [
-//         [0, 0, 0, 1, 0, 0, 0],
-//         [0, 0, 0, 1, 0, 0, 0],
-//         [0, 0, 0, 2, 0, 0, 0],
-//         [1, 1, 2, 3, 2, 1, 1],
-//         [0, 0, 0, 2, 0, 0, 0],
-//         [0, 0, 0, 1, 0, 0, 0],
-//         [0, 0, 0, 1, 0, 0, 0],
-//     ];
-//     array.map(|row| row.map(|cell| cell.into()))
-// }
-
-fn new_tawlbwrdd() -> Board {
-    // 11 x 11 board
+fn new_brandubh() -> Board {
+    // 7 x 7 board
     let array = [
-        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
-        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
-        [1, 1, 0, 0, 0, 2, 0, 0, 0, 1, 1],
-        [1, 1, 2, 2, 2, 3, 2, 2, 2, 1, 1],
-        [1, 1, 0, 0, 0, 2, 0, 0, 0, 1, 1],
-        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
-        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 2, 0, 0, 0],
+        [1, 1, 2, 3, 2, 1, 1],
+        [0, 0, 0, 2, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0],
     ];
     array.map(|row| row.map(|cell| cell.into()))
 }
+
+//fn new_tawlbwrdd() -> Board {
+//    // 11 x 11 board
+//    let array = [
+//        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+//        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+//        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
+//        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
+//        [1, 1, 0, 0, 0, 2, 0, 0, 0, 1, 1],
+//        [1, 1, 2, 2, 2, 3, 2, 2, 2, 1, 1],
+//        [1, 1, 0, 0, 0, 2, 0, 0, 0, 1, 1],
+//        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
+//        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
+//        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+//        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+//    ];
+//    array.map(|row| row.map(|cell| cell.into()))
+//}
 
 fn next_tile(src: Tile, dir: (i32, i32)) -> Tile {
     (src.r as i32 + dir.0, src.c as i32 + dir.1).into()
@@ -106,7 +103,7 @@ enum PlayerType {
 impl Game {
     pub fn new() -> Self {
         Game {
-            board: new_tawlbwrdd(), // only one board option
+            board: new_brandubh(), // only one board option
             current_selection: None,
             defenders_turn: false, // attackers always make first move
             defender_player: PlayerType::Human,
@@ -197,7 +194,7 @@ impl Game {
     }
 
     pub fn board_size(&self) -> usize {
-        11 // only one board option currently
+        7 // only one board option currently // TODO: unify board size
     }
 
     pub fn tile_on_board(&self, tile: Tile) -> bool {
