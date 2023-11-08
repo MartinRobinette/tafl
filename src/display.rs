@@ -20,10 +20,7 @@ pub fn highlight_tile(tile: Tile) {
     draw_rectangle_lines(x, y, TILE_SIZE - 4.0, TILE_SIZE - 4.0, 2.0, GREEN)
 }
 
-pub fn set_screen_size() {
-    request_new_screen_size(SCREEN_WIDTH, SCREEN_HEIGHT);
-}
-
+/// maps tile index to pixel position
 pub fn tile_position(i: usize) -> f32 {
     TILE_SIZE * (i as f32) + SCREEN_EDGE
 }
@@ -76,7 +73,7 @@ pub fn draw_pieces(game: &Game) {
 
 pub fn draw_game(game: &Game) {
     clear_background(BLACK);
-    set_screen_size();
+    request_new_screen_size(SCREEN_WIDTH, SCREEN_HEIGHT);
     draw_board(game);
     draw_pieces(game);
 
