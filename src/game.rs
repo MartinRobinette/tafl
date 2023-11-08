@@ -17,12 +17,19 @@ impl From<i32> for PieceType {
     }
 }
 
+// board and turn as game
+// have main hold the players
+
 pub struct Game {
     pub board: Board,
+    pub defenders_turn: bool,
+}
+
+pub struct GameState {
+    pub game: Game,
     // used for highlighting options and moving pieces
     pub current_selection: Option<Tile>,
     // ? valid_moves: Vec<Tile>,
-    pub defenders_turn: bool,
     defender_player: PlayerType,
     attacker_player: PlayerType,
 }
@@ -40,12 +47,6 @@ impl From<(i32, i32)> for Tile {
             r: row as usize,
             c: col as usize,
         }
-    }
-}
-
-impl From<(usize, usize)> for Tile {
-    fn from((row, col): (usize, usize)) -> Self {
-        Tile { r: row, c: col }
     }
 }
 
@@ -67,24 +68,6 @@ fn new_brandubh() -> Board {
     array.map(|row| row.map(|cell| cell.into()))
 }
 
-//fn new_tawlbwrdd() -> Board {
-//    // 11 x 11 board
-//    let array = [
-//        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
-//        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
-//        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
-//        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
-//        [1, 1, 0, 0, 0, 2, 0, 0, 0, 1, 1],
-//        [1, 1, 2, 2, 2, 3, 2, 2, 2, 1, 1],
-//        [1, 1, 0, 0, 0, 2, 0, 0, 0, 1, 1],
-//        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
-//        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
-//        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
-//        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
-//    ];
-//    array.map(|row| row.map(|cell| cell.into()))
-//}
-
 fn next_tile(src: Tile, dir: (i32, i32)) -> Tile {
     (src.r as i32 + dir.0, src.c as i32 + dir.1).into()
 }
@@ -100,31 +83,26 @@ enum PlayerType {
     AI,
 }
 
-impl Game {
+impl GameState {
     pub fn new() -> Self {
-        Game {
-            board: new_brandubh(), // only one board option
+        GameState {
+            game: Game::new(),
             current_selection: None,
-            defenders_turn: false, // attackers always make first move
             defender_player: PlayerType::Human,
             attacker_player: PlayerType::Human,
         }
     }
+}
 
-    fn friendly_piece(&self, tile: Tile) -> bool {
-        if self.tile_is_empty(tile) {
-            return false;
+impl Game {
+    pub fn new() -> Self {
+        Game {
+            board: new_brandubh(), // only one board option
+            defenders_turn: false, // attackers always make first move
         }
-        self.defenders_turn == self.is_defender(tile)
     }
 
-    fn enemy_piece(&self, tile: Tile) -> bool {
-        if self.tile_is_empty(tile) {
-            return false;
-        }
-        self.defenders_turn != self.is_defender(tile)
-    }
-
+    // favor no mutation TODO: return a new game
     fn move_piece(&mut self, src: Tile, dest: Tile) {
         // might want to add validation here for valid move
         // check end is blank, start is not blank, and start is current players piece
@@ -152,6 +130,20 @@ impl Game {
             // king is captured and all defender beads are captured
             // king bead on any of 4 corners (some rules say any edge piece)
         }
+    }
+
+    fn friendly_piece(&self, tile: Tile) -> bool {
+        if self.tile_is_empty(tile) {
+            return false;
+        }
+        self.defenders_turn == self.is_defender(tile)
+    }
+
+    fn enemy_piece(&self, tile: Tile) -> bool {
+        if self.tile_is_empty(tile) {
+            return false;
+        }
+        self.defenders_turn != self.is_defender(tile)
     }
 
     fn current_player(&self) -> PlayerType {
@@ -237,3 +229,21 @@ impl Game {
         valid_moves
     }
 }
+
+//fn new_tawlbwrdd() -> Board {
+//    // 11 x 11 board
+//    let array = [
+//        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+//        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+//        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
+//        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
+//        [1, 1, 0, 0, 0, 2, 0, 0, 0, 1, 1],
+//        [1, 1, 2, 2, 2, 3, 2, 2, 2, 1, 1],
+//        [1, 1, 0, 0, 0, 2, 0, 0, 0, 1, 1],
+//        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
+//        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
+//        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+//        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+//    ];
+//    array.map(|row| row.map(|cell| cell.into()))
+//}
