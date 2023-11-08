@@ -1,3 +1,5 @@
+use crate::player::Player;
+
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum PieceType {
     Attacker,
@@ -5,20 +7,6 @@ pub enum PieceType {
     King,
     Blank,
 }
-
-impl From<i32> for PieceType {
-    fn from(item: i32) -> Self {
-        match item {
-            1 => PieceType::Attacker,
-            2 => PieceType::Defender,
-            3 => PieceType::King,
-            _ => PieceType::Blank,
-        }
-    }
-}
-
-// board and turn as game
-// have main hold the players
 
 pub struct Game {
     pub board: Board,
@@ -30,8 +18,8 @@ pub struct GameState {
     // used for highlighting options and moving pieces
     pub current_selection: Option<Tile>,
     // ? valid_moves: Vec<Tile>,
-    defender_player: PlayerType,
-    attacker_player: PlayerType,
+    defender_player: Player,
+    attacker_player: Player,
 }
 
 //pub fn takeTurn()
@@ -53,19 +41,18 @@ impl From<(i32, i32)> for Tile {
 const BOARD_SIZE: usize = 7; // TODO: unify board size
 pub type Board = [[PieceType; BOARD_SIZE]; BOARD_SIZE];
 
-// Brandubh style board
 fn new_brandubh() -> Board {
-    // 7 x 7 board
-    let array = [
-        [0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 0, 2, 0, 0, 0],
-        [1, 1, 2, 3, 2, 1, 1],
-        [0, 0, 0, 2, 0, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0],
-    ];
-    array.map(|row| row.map(|cell| cell.into()))
+    use PieceType::{Attacker as A, Blank as B};
+    use PieceType::{Defender as D, King as K};
+    [
+        [B, B, B, A, B, B, B],
+        [B, B, B, A, B, B, B],
+        [B, B, B, D, B, B, B],
+        [A, A, D, K, D, A, A],
+        [B, B, B, D, B, B, B],
+        [B, B, B, A, B, B, B],
+        [B, B, B, A, B, B, B],
+    ]
 }
 
 fn next_tile(src: Tile, dir: (i32, i32)) -> Tile {
@@ -77,59 +64,30 @@ impl Default for Game {
         Self::new()
     }
 }
-#[derive(Clone, Copy)]
-enum PlayerType {
-    Human,
-    AI,
-}
 
 impl GameState {
-    pub fn new() -> Self {
+    pub fn new(defender: Player, attacker: Player) -> Self {
         GameState {
             game: Game::new(),
             current_selection: None,
-            defender_player: PlayerType::Human,
-            attacker_player: PlayerType::Human,
+            defender_player: defender,
+            attacker_player: attacker,
         }
     }
 
-    fn current_player(&self) -> PlayerType {
+    pub fn current_player(&self) -> &Player {
         if self.game.defenders_turn {
-            self.defender_player
+            &self.defender_player
         } else {
-            self.attacker_player
-        }
-    }
-    pub fn tile_clicked(&mut self, tile: Tile) {
-        if let PlayerType::Human = self.current_player() {
-            self.player_turn(tile);
+            &self.attacker_player
         }
     }
 
-    fn player_turn(&mut self, tile: Tile) {
-        // if previous tile selected
-        if let Some(selected) = self.current_selection {
-            // if tile is valid move
-            if self.game.get_valid_moves(selected).contains(&tile) {
-                // move piece
-                self.game.move_piece(selected, tile);
-                self.current_selection = None;
-                self.game.defenders_turn = !self.game.defenders_turn;
-            } else {
-                // prev selection and non valid move
-                match self.game.is_player_piece(tile) {
-                    true => self.current_selection = None,
-                    false => self.current_selection = Some(tile),
-                }
-            }
-        } else {
-            // no previous tile selected
-            match self.game.is_player_piece(tile) {
-                true => self.current_selection = Some(tile),
-                false => self.current_selection = None,
-            }
-        }
-    }
+    // pub fn tile_clicked(&mut self, tile: Tile) {
+    //     if let PlayerType::Human = self.current_player() {
+    //         self.player_turn(tile);
+    //     }
+    // }
 }
 
 impl Game {
@@ -141,7 +99,7 @@ impl Game {
     }
 
     // favor no mutation TODO: return a new game
-    fn move_piece(&mut self, src: Tile, dest: Tile) {
+    pub fn move_piece(&mut self, src: Tile, dest: Tile) {
         // might want to add validation here for valid move
         // check end is blank, start is not blank, and start is current players piece
         // and check valid move function
@@ -190,7 +148,6 @@ impl Game {
     }
 
     pub fn tile_on_board(&self, tile: Tile) -> bool {
-        // TODO: look at const types
         tile.r < self.board.len() && tile.c < self.board.len()
     }
 
@@ -230,21 +187,3 @@ impl Game {
         valid_moves
     }
 }
-
-//fn new_tawlbwrdd() -> Board {
-//    // 11 x 11 board
-//    let array = [
-//        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
-//        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
-//        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
-//        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
-//        [1, 1, 0, 0, 0, 2, 0, 0, 0, 1, 1],
-//        [1, 1, 2, 2, 2, 3, 2, 2, 2, 1, 1],
-//        [1, 1, 0, 0, 0, 2, 0, 0, 0, 1, 1],
-//        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
-//        [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
-//        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
-//        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
-//    ];
-//    array.map(|row| row.map(|cell| cell.into()))
-//}
