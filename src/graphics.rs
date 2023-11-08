@@ -1,6 +1,6 @@
 use crate::game::{Game, PieceType, Tile};
 use macroquad::prelude::*;
-use std::{thread, time};
+//use std::{thread, time};
 
 const BOARD_SIZE: f32 = 600.0;
 const SCREEN_EDGE: f32 = 20.0;
@@ -32,8 +32,8 @@ impl Display {
         draw_pieces(game);
 
         //Highlight moves for selected tile
-        if let Some(selected) = self.current_selection {
-            for tile in game.get_valid_moves(selected) {
+        if let Some(tile) = self.current_selection {
+            for tile in game.get_valid_moves(tile) {
                 highlight_tile(tile);
             }
         }
@@ -42,7 +42,7 @@ impl Display {
         draw_text(format!("FPS: {}", get_fps()).as_str(), 0., 16., 32., WHITE);
 
         // limit to fps (macroquad will sync up frames with display refresh rate)
-        thread::sleep(time::Duration::from_millis(20));
+        //thread::sleep(time::Duration::from_millis(20));
 
         next_frame().await;
     }

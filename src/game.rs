@@ -1,4 +1,10 @@
-use crate::player::Player;
+use crate::ai::AIPlayer;
+use crate::human::HumanPlayer;
+// did not want to use async-trait crate
+pub enum Player {
+    Human(HumanPlayer),
+    AI(AIPlayer),
+}
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum PieceType {
@@ -29,6 +35,17 @@ pub struct Tile {
     pub r: usize,
 }
 
+impl From<(usize, usize)> for Tile {
+    fn from((row, col): (usize, usize)) -> Self {
+        Tile {
+            r: row as usize,
+            c: col as usize,
+        }
+    }
+}
+
+// TODO: this needs to change, don't want negatives
+// this can be fixed by adding direction enum
 impl From<(i32, i32)> for Tile {
     fn from((row, col): (i32, i32)) -> Self {
         Tile {
@@ -55,6 +72,7 @@ fn new_brandubh() -> Board {
     ]
 }
 
+// i do not like this
 fn next_tile(src: Tile, dir: (i32, i32)) -> Tile {
     (src.r as i32 + dir.0, src.c as i32 + dir.1).into()
 }
@@ -73,6 +91,18 @@ impl GameState {
             defender_player: defender,
             attacker_player: attacker,
         }
+    }
+
+    // take player turn
+    pub async fn next_turn(&mut self) {
+        let (src, dest) = match self.current_player() {
+            Player::Human(human) => human.player_turn(&self.game).await,
+            Player::AI(ai) => ai.take_turn(&self.game),
+        };
+        self.game.move_piece(src, dest);
+
+        // ask
+        self.game.defenders_turn = !self.game.defenders_turn;
     }
 
     pub fn current_player(&self) -> &Player {
