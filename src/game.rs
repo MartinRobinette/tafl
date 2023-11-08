@@ -92,6 +92,44 @@ impl GameState {
             attacker_player: PlayerType::Human,
         }
     }
+
+    fn current_player(&self) -> PlayerType {
+        if self.game.defenders_turn {
+            self.defender_player
+        } else {
+            self.attacker_player
+        }
+    }
+    pub fn tile_clicked(&mut self, tile: Tile) {
+        if let PlayerType::Human = self.current_player() {
+            self.player_turn(tile);
+        }
+    }
+
+    fn player_turn(&mut self, tile: Tile) {
+        // if previous tile selected
+        if let Some(selected) = self.current_selection {
+            // if tile is valid move
+            if self.game.get_valid_moves(selected).contains(&tile) {
+                // move piece
+                self.game.move_piece(selected, tile);
+                self.current_selection = None;
+                self.game.defenders_turn = !self.game.defenders_turn;
+            } else {
+                // prev selection and non valid move
+                match self.game.is_player_piece(tile) {
+                    true => self.current_selection = None,
+                    false => self.current_selection = Some(tile),
+                }
+            }
+        } else {
+            // no previous tile selected
+            match self.game.is_player_piece(tile) {
+                true => self.current_selection = Some(tile),
+                false => self.current_selection = None,
+            }
+        }
+    }
 }
 
 impl Game {
@@ -146,50 +184,13 @@ impl Game {
         self.defenders_turn != self.is_defender(tile)
     }
 
-    fn current_player(&self) -> PlayerType {
-        if self.defenders_turn {
-            self.defender_player
-        } else {
-            self.attacker_player
-        }
-    }
-
-    pub fn tile_clicked(&mut self, tile: Tile) {
-        if let PlayerType::Human = self.current_player() {
-            self.player_turn(tile);
-        }
-    }
-
-    fn player_turn(&mut self, tile: Tile) {
-        // if previous tile selected
-        if let Some(selected) = self.current_selection {
-            // if tile is valid move
-            if self.get_valid_moves(selected).contains(&tile) {
-                // move piece
-                self.move_piece(selected, tile);
-                self.current_selection = None;
-                self.defenders_turn = !self.defenders_turn;
-            } else {
-                // prev selection and non valid move
-                match self.is_player_piece(tile) {
-                    true => self.current_selection = None,
-                    false => self.current_selection = Some(tile),
-                }
-            }
-        } else {
-            // no previous tile selected
-            match self.is_player_piece(tile) {
-                true => self.current_selection = Some(tile),
-                false => self.current_selection = None,
-            }
-        }
-    }
-
     pub fn board_size(&self) -> usize {
+        // used in display
         7 // only one board option currently // TODO: unify board size
     }
 
     pub fn tile_on_board(&self, tile: Tile) -> bool {
+        // TODO: look at const types
         tile.r < self.board.len() && tile.c < self.board.len()
     }
 

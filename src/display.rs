@@ -1,3 +1,4 @@
+use crate::game::GameState;
 use crate::game::{Game, PieceType, Tile};
 use macroquad::prelude::*;
 
@@ -71,15 +72,15 @@ pub fn draw_pieces(game: &Game) {
     }
 }
 
-pub fn draw_game(game: &Game) {
+pub fn draw_game(gs: &GameState) {
     clear_background(BLACK);
     request_new_screen_size(SCREEN_WIDTH, SCREEN_HEIGHT);
-    draw_board(game);
-    draw_pieces(game);
+    draw_board(&gs.game);
+    draw_pieces(&gs.game);
 
     // Highlight moves for selected tile
-    if let Some(selected) = game.current_selection {
-        for tile in game.get_valid_moves(selected) {
+    if let Some(selected) = gs.current_selection {
+        for tile in gs.game.get_valid_moves(selected) {
             highlight_tile(tile);
         }
     }

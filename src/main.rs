@@ -5,10 +5,9 @@ use macroquad::prelude::{
 use tafl::display;
 use tafl::game::*;
 
-
 #[macroquad::main("Tafl")]
 async fn main() {
-    let mut game = Game::new();
+    let mut game_state = GameState::new();
 
     // Main graphics / input loop
     loop {
@@ -17,15 +16,14 @@ async fn main() {
             let mouse_pos = display::mouse_tile_position();
             // let game know if a tile is clicked
             if let Some(t) = mouse_pos {
-                if game.tile_on_board(t) {
-                    game.tile_clicked(t);
+                if game_state.game.tile_on_board(t) {
+                    game_state.tile_clicked(t);
                 }
             }
         }
 
-        
         // render game
-        display::draw_game(&game);
+        display::draw_game(&game_state);
 
         // show fps
         draw_text(format!("FPS: {}", get_fps()).as_str(), 0., 16., 32., WHITE);
