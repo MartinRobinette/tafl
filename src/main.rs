@@ -1,9 +1,10 @@
 use macroquad::prelude::{
     draw_text, get_fps, is_mouse_button_released, next_frame, MouseButton, WHITE,
 };
-use std::{thread, time};
+//use std::{thread, time};
 use tafl::display;
 use tafl::game::*;
+
 
 #[macroquad::main("Tafl")]
 async fn main() {
@@ -22,6 +23,7 @@ async fn main() {
             }
         }
 
+        
         // render game
         display::draw_game(&game);
 
@@ -29,7 +31,7 @@ async fn main() {
         draw_text(format!("FPS: {}", get_fps()).as_str(), 0., 16., 32., WHITE);
 
         // limit to fps
-        thread::sleep(time::Duration::from_millis(20));
+        //thread::sleep(time::Duration::from_millis(20));
 
         next_frame().await;
     }
