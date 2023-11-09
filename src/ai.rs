@@ -69,7 +69,7 @@ impl AIPlayer {
                 let new_game = game.move_piece(src, dest);
                 let score = self.minimax(new_game, false, depth - 1, alpha, beta);
                 max = std::cmp::max(max, score);
-                if max >= beta {
+                if max > beta {
                     break;
                 }
                 alpha = std::cmp::max(alpha, max);
@@ -83,7 +83,7 @@ impl AIPlayer {
                 let new_game = game.move_piece(src, dest);
                 let score = self.minimax(new_game, true, depth - 1, alpha, beta);
                 min = std::cmp::min(min, score);
-                if min <= alpha {
+                if min < alpha {
                     break;
                 }
                 beta = std::cmp::min(beta, min);
