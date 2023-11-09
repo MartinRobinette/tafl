@@ -22,9 +22,7 @@ impl AIPlayer {
         // defender is maximizing agent
         let is_maximizing = game.defenders_turn;
         let depth = 4;
-        // 3 -> .07 - .1 secs
-        // 4 -> .6 secs
-        // 5 -> 9+ secs
+
         let alpha = std::i32::MIN;
         let beta = std::i32::MAX;
 

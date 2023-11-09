@@ -257,7 +257,8 @@ impl Game {
     pub fn get_valid_moves(&self, src: Tile) -> Vec<Tile> {
         // no piece can end on the throne, but can move though it
         // only king can end on an exit (corner)
-        let mut valid_moves = Vec::<Tile>::new();
+        let mut valid_moves = Vec::<Tile>::with_capacity(10);
+        //let mut valid_moves = Vec::<Tile>::new();
         if !self.tile_on_board(src) || self.tile_is_empty(src) {
             return valid_moves;
         }
@@ -271,11 +272,13 @@ impl Game {
                 dest = next_tile(dest, dir);
             }
         }
+        //println!("{}", valid_moves.len());
         valid_moves
     }
 
     pub fn get_all_valid_moves(&self) -> Vec<(Tile, Tile)> {
-        let mut moves = Vec::<(Tile, Tile)>::new();
+        let mut moves = Vec::<(Tile, Tile)>::with_capacity(50);
+        //let mut moves = Vec::<(Tile, Tile)>::new();
         for (r, row) in self.board.iter().enumerate() {
             for c in 0..row.len() {
                 let tile = (r, c).into();
@@ -286,6 +289,7 @@ impl Game {
                 }
             }
         }
+        //println!("{}", moves.len());
         moves
     }
 
