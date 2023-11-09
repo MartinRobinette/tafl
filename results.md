@@ -25,8 +25,8 @@ average time: 0.1555483341217041
 
 
 ## Preallocate
-get valid size(10)
-get all size (50)
+get valid used size(10)
+get all used size (50)
 average time: 0.10877585411071777
 average time: 0.06750965118408203
 average time: 0.10060962041219075
@@ -45,3 +45,35 @@ average time: 0.08138302167256674
 [ perf record: Woken up 81 times to write data ]
 [ perf record: Captured and wrote 20.481 MB perf.data (1288 samples) ]
 writing flamegraph to "flamegraph.svg"
+
+## Iterators for getting Moves
+average time: 0.04778242111206055
+average time: 0.035840511322021484
+average time: 0.05446171760559082
+average time: 0.0454520583152771
+average time: 0.05700221061706543
+average time: 0.05101327101389567
+average time: 0.05771064758300781
+average time: 0.05168628692626953
+average time: 0.0663758913675944
+average time: 0.06042571067810058
+average time: 0.05675695159218528
+average time: 0.05257262786229452
+average time: 0.05094111882723295
+average time: 0.047427432877676826
+average time: 0.045239830017089845
+[ perf record: Woken up 48 times to write data ]
+[ perf record: Captured and wrote 12.534 MB perf.data (787 samples) ]
+
+## Iterator for moves with depth = 5 and 
+average time: 0.8673126697540283
+average time: 0.5690828561782837
+average time: 0.9427290757497152
+average time: 0.7884541153907776
+average time: 1.0051043033599854
+average time: 0.8897046645482382
+average time: 1.9050840650285994
+average time: 1.6775836944580078
+average time: 2.0471408896976047
+average time: 1.8629112005233766
+average time: 1.712591366334395

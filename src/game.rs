@@ -31,6 +31,11 @@ pub struct GameState {
     attacker_player: Player,
 }
 
+pub struct Action {
+    pub src: Tile,
+    pub dest: Tile,
+}
+
 //pub fn takeTurn()
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub struct Tile {
@@ -254,43 +259,43 @@ impl Game {
         self.defenders_turn == self.is_defender(src)
     }
 
-    pub fn get_valid_moves(&self, src: Tile) -> Vec<Tile> {
-        // no piece can end on the throne, but can move though it
-        // only king can end on an exit (corner)
-        let mut valid_moves = Vec::<Tile>::with_capacity(10);
-        //let mut valid_moves = Vec::<Tile>::new();
-        if !self.tile_on_board(src) || self.tile_is_empty(src) {
-            return valid_moves;
-        }
-        for (r, c) in &vec![(0, -1), (0, 1), (1, 0), (-1, 0)] {
-            let dir = (*r, *c);
-            let mut dest = next_tile(src, dir);
-            while self.tile_on_board(dest) && self.tile_is_empty(dest) {
-                if dest != self.throne_tile() {
-                    valid_moves.push(dest);
-                }
-                dest = next_tile(dest, dir);
+    pub fn moves_in_direction(&self, src: Tile, dir: (i32, i32)) -> Vec<(Tile, Tile)> {
+        let mut moves = Vec::<(Tile, Tile)>::new();
+
+        let mut dest = next_tile(src, dir);
+
+        while self.tile_on_board(dest) && self.tile_is_empty(dest) {
+            if dest != self.throne_tile() {
+                moves.push((src, dest));
             }
+            dest = next_tile(dest, dir);
         }
-        //println!("{}", valid_moves.len());
-        valid_moves
+
+        moves
     }
 
-    pub fn get_all_valid_moves(&self) -> Vec<(Tile, Tile)> {
-        let mut moves = Vec::<(Tile, Tile)>::with_capacity(50);
-        //let mut moves = Vec::<(Tile, Tile)>::new();
-        for (r, row) in self.board.iter().enumerate() {
-            for c in 0..row.len() {
-                let tile = (r, c).into();
-                if self.is_player_piece(tile) {
-                    for dest in self.get_valid_moves(tile) {
-                        moves.push((tile, dest));
-                    }
-                }
-            }
-        }
-        //println!("{}", moves.len());
-        moves
+    pub fn get_valid_moves<'a>(&'a self, src: Tile) -> impl Iterator<Item = (Tile, Tile)> + 'a {
+        // no piece can end on the throne, but can move though it
+        // only king can end on an exit (corner)
+
+        // if no piece on src return empty
+        if !self.tile_on_board(src) || self.tile_is_empty(src) {
+            panic!("why are you checking valid moves for an empty tile");
+        };
+
+        [(0, -1), (0, 1), (1, 0), (-1, 0)]
+            .iter()
+            .flat_map(move |dir| self.moves_in_direction(src, *dir).into_iter())
+    }
+
+    pub fn get_all_valid_moves<'a>(&'a self) -> impl Iterator<Item = (Tile, Tile)> + 'a {
+        let size = self.board.len();
+        (0..size).flat_map(move |r| {
+            (0..size)
+                // for all locations
+                .filter(move |&c| self.is_player_piece((r, c).into()))
+                .flat_map(move |c| self.get_valid_moves((r, c).into()))
+        })
     }
 
     pub fn score(&self) -> i32 {

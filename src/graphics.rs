@@ -33,8 +33,8 @@ impl Display {
 
         //Highlight moves for selected tile
         if let Some(tile) = self.current_selection {
-            for tile in game.get_valid_moves(tile) {
-                highlight_tile(tile);
+            for (_, dest) in game.get_valid_moves(tile) {
+                highlight_tile(dest);
             }
         }
 

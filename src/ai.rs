@@ -26,9 +26,8 @@ impl AIPlayer {
         let alpha = std::i32::MIN;
         let beta = std::i32::MAX;
 
-        let moves = game.get_all_valid_moves();
-        let mut best_src = moves[0].0;
-        let mut best_dest = moves[0].1;
+        let mut best_src = None;
+        let mut best_dest = None;
 
         let mut best_score = if is_maximizing {
             std::i32::MIN
@@ -40,22 +39,25 @@ impl AIPlayer {
             let score = self.minimax(new_game, is_maximizing, depth, alpha, beta);
             if is_maximizing && score > best_score {
                 best_score = score;
-                best_src = src;
-                best_dest = dest;
+                best_src = Some(src);
+                best_dest = Some(dest);
             }
             if !is_maximizing && score < best_score {
                 best_score = score;
-                best_src = src;
-                best_dest = dest;
+                best_src = Some(src);
+                best_dest = Some(dest);
             }
         }
-        (best_src, best_dest)
+        if let None = best_src {
+            panic!("no valid moves");
+        }
+
+        (best_src.unwrap(), best_dest.unwrap())
     }
     // depth counts down and stops at zero
     fn minimax(&self, game: Game, is_maximizing: bool, depth: u32, alpha: i32, beta: i32) -> i32 {
         // check depth
         // check terminal state
-
         if depth == 0 || game.game_over {
             return game.score();
         }
@@ -96,14 +98,12 @@ impl AIPlayer {
         let pieces = friendly_piece_positions(game);
         loop {
             let src: Tile = *pieces.choose(&mut rng).unwrap(); // panics if no pieces
-            let options: Vec<Tile> = game.get_valid_moves(src);
+            let options: Vec<(Tile, Tile)> = game.get_valid_moves(src).collect();
             if options.len() == 0 {
                 // loops forever if no possible moves
                 continue;
             }
-            let dest = *options.choose(&mut rng).unwrap();
-
-            break (src, dest);
+            break *options.choose(&mut rng).unwrap();
         }
     }
 }
