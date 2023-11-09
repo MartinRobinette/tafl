@@ -12,7 +12,7 @@ async fn main() {
 
     // players
     let attacker = Player::AI(AIPlayer {
-        kind: AIKind::Random,
+        kind: AIKind::Minimax,
     });
     //let defender = Player::Human(HumanPlayer::new(Rc::clone(&display)));
     //let defender = Player::Human(HumanPlayer::new(Rc::clone(&display)));
@@ -29,24 +29,25 @@ async fn main() {
     let mut total_time = 0_f64;
     let mut total_turs = 0;
     loop {
-        if !game_state.game.game_over {
-            let time = macroquad::time::get_time();
-            game_state.next_turn().await;
-            let time2 = macroquad::time::get_time();
-            let time_taken = time2 - time;
-            //println!("turn took {} seconds", time_taken);
-            if !game_state.game.defenders_turn {
-                // tracks defender
-                total_time += time_taken;
-                total_turs += 1;
-                println!("average time: {}", total_time / total_turs as f64);
-            }
-
-            //sleep until 1 second reached
-            //let dur = 0_f64.max(1_f64 - time_taken);
-            //thread::sleep(time::Duration::from_secs_f64(dur));
+        let time = macroquad::time::get_time();
+        game_state.next_turn().await;
+        let time2 = macroquad::time::get_time();
+        let time_taken = time2 - time;
+        //println!("turn took {} seconds", time_taken);
+        if !game_state.game.defenders_turn {
+            // tracks defender
+            total_time += time_taken;
+            total_turs += 1;
+            println!("average time: {}", total_time / total_turs as f64);
+        }
+        if game_state.game.game_over {
+            break;
         }
         // render game
+        display.borrow_mut().draw_game(&game_state.game).await;
+    }
+    println!("game over");
+    loop {
         display.borrow_mut().draw_game(&game_state.game).await;
     }
 }
