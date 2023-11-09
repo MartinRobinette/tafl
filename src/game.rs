@@ -135,9 +135,10 @@ impl Game {
 
     fn is_corner(&self, tile: Tile) -> bool {
         let size = self.board.len() - 1;
-        tile.r == 0 && (tile.c == 0 || tile.r == size)
-            || tile.c == 0 && (tile.r == 0 || tile.c == size)
+        (tile.r == 0 && (tile.c == 0 || tile.c == size))
+            || (tile.r == size && (tile.c == 0 || tile.c == size))
     }
+
     fn throne_tile(&self) -> Tile {
         let size = self.board.len() - 1;
         (size / 2, size / 2).into()
@@ -312,7 +313,8 @@ impl Game {
                 match piece {
                     PieceType::Defender => score += 1,
                     PieceType::Attacker => score -= 1,
-                    PieceType::King | &PieceType::Blank => (),
+                    PieceType::King => score += 100,
+                    PieceType::Blank => (),
                 }
             }
         }

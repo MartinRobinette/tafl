@@ -14,11 +14,11 @@ async fn main() {
     let attacker = Player::AI(AIPlayer {
         kind: AIKind::Minimax,
     });
-    //let defender = Player::Human(HumanPlayer::new(Rc::clone(&display)));
-    //let defender = Player::Human(HumanPlayer::new(Rc::clone(&display)));
     let defender = Player::AI(AIPlayer {
         kind: AIKind::Minimax,
     });
+    //let defender = Player::Human(HumanPlayer::new(Rc::clone(&display)));
+    let attacker = Player::Human(HumanPlayer::new(Rc::clone(&display)));
 
     let mut game_state = GameState::new(defender, attacker);
 

@@ -1,7 +1,12 @@
 # Optimizations
+all runs using minimax for both sides
+and depth of 4
+
+each section shows
 what changes were made
 running average time per turn
-pref.data in folder
+
+pref.data separate folder
 
 ## No Change
     Finished release [optimized + debuginfo] target(s) in 1.29s
