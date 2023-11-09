@@ -46,8 +46,8 @@ async fn main() {
         // render game
         display.borrow_mut().draw_game(&game_state.game).await;
     }
-    println!("game over");
-    loop {
-        display.borrow_mut().draw_game(&game_state.game).await;
-    }
+    //println!("game over");
+    //loop {
+    //display.borrow_mut().draw_game(&game_state.game).await;
+    //}
 }
