@@ -18,7 +18,8 @@ pub enum PieceType {
 pub struct Game {
     pub board: Board,
     pub defenders_turn: bool,
-    pub defender_won: Option<bool>,
+    pub game_over: bool,
+    pub defender_won: bool,
 }
 
 pub struct GameState {
@@ -118,12 +119,9 @@ impl Game {
         Game {
             board: new_brandubh(), // only one board option
             defenders_turn: false, // attackers always make first move
-            defender_won: None,
+            game_over: false,
+            defender_won: false,
         }
-    }
-
-    pub fn game_over(&self) -> bool {
-        self.defender_won.is_some()
     }
 
     fn piece_type(&self, tile: Tile) -> PieceType {
@@ -181,7 +179,8 @@ impl Game {
                 if self.piece_type(neighbor) != PieceType::King {
                     self.board[neighbor.r][neighbor.c] = PieceType::Blank;
                 } else if self.check_king_capture(neighbor) {
-                    self.defender_won = Some(self.defenders_turn);
+                    self.defender_won = false;
+                    self.game_over = true;
                     return;
                 }
             }
@@ -209,7 +208,8 @@ impl Game {
 
         // check for king on exit
         if game.piece_type(dest) == PieceType::King && self.is_corner(dest) {
-            game.defender_won = Some(true);
+            game.defender_won = true;
+            game.game_over = true;
         }
 
         game.check_captures(dest);
@@ -272,5 +272,41 @@ impl Game {
             }
         }
         valid_moves
+    }
+
+    pub fn get_all_valid_moves(&self) -> Vec<(Tile, Tile)> {
+        let mut moves = Vec::<(Tile, Tile)>::new();
+        for (r, row) in self.board.iter().enumerate() {
+            for c in 0..row.len() {
+                let tile = (r, c).into();
+                if self.is_player_piece(tile) {
+                    for dest in self.get_valid_moves(tile) {
+                        moves.push((tile, dest));
+                    }
+                }
+            }
+        }
+        moves
+    }
+
+    pub fn score(&self) -> i32 {
+        // defender maximizing
+        if self.game_over && self.defender_won {
+            return std::i32::MAX;
+        }
+        if self.game_over && !self.defender_won {
+            return std::i32::MIN;
+        }
+        let mut score = 0;
+        for row in self.board.iter() {
+            for piece in row.iter() {
+                match piece {
+                    PieceType::Defender => score += 1,
+                    PieceType::Attacker => score -= 1,
+                    PieceType::King | &PieceType::Blank => (),
+                }
+            }
+        }
+        score
     }
 }

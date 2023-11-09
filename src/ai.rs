@@ -3,7 +3,7 @@ use rand::seq::SliceRandom;
 
 pub enum AIKind {
     Random,
-    //Minimax,
+    Minimax,
 }
 
 pub struct AIPlayer {
@@ -14,7 +14,81 @@ impl AIPlayer {
     pub fn take_turn(&self, game: &Game) -> (Tile, Tile) {
         match self.kind {
             AIKind::Random => self.random_turn(game),
-            //AIKind::Minimax => self.minimax_turn(game),
+            AIKind::Minimax => self.minimax_turn(game),
+        }
+    }
+    // minimax ai
+    fn minimax_turn(&self, game: &Game) -> (Tile, Tile) {
+        // defender is maximizing agent
+        let is_maximizing = game.defenders_turn;
+        let depth = 4;
+        // 3 -> .07 - .1 secs
+        // 4 -> .6 secs
+        // 5 -> 9+ secs
+        let alpha = std::i32::MIN;
+        let beta = std::i32::MAX;
+
+        let moves = game.get_all_valid_moves();
+        let mut best_src = moves[0].0;
+        let mut best_dest = moves[0].1;
+
+        let mut best_score = if is_maximizing {
+            std::i32::MIN
+        } else {
+            std::i32::MAX
+        };
+        for (src, dest) in game.get_all_valid_moves() {
+            let new_game = game.move_piece(src, dest);
+            let score = self.minimax(new_game, is_maximizing, depth, alpha, beta);
+            if is_maximizing && score > best_score {
+                best_score = score;
+                best_src = src;
+                best_dest = dest;
+            }
+            if !is_maximizing && score < best_score {
+                best_score = score;
+                best_src = src;
+                best_dest = dest;
+            }
+        }
+        (best_src, best_dest)
+    }
+    // depth counts down and stops at zero
+    fn minimax(&self, game: Game, is_maximizing: bool, depth: u32, alpha: i32, beta: i32) -> i32 {
+        // check depth
+        // check terminal state
+
+        if depth == 0 || game.game_over {
+            return game.score();
+        }
+
+        if is_maximizing {
+            let mut max = std::i32::MIN;
+            let mut alpha = alpha;
+            for (src, dest) in game.get_all_valid_moves() {
+                let new_game = game.move_piece(src, dest);
+                let score = self.minimax(new_game, false, depth - 1, alpha, beta);
+                max = std::cmp::max(max, score);
+                if max >= beta {
+                    break;
+                }
+                alpha = std::cmp::max(alpha, max);
+            }
+            max
+        } else {
+            // minimizing agent
+            let mut min = std::i32::MAX;
+            let mut beta = beta;
+            for (src, dest) in game.get_all_valid_moves() {
+                let new_game = game.move_piece(src, dest);
+                let score = self.minimax(new_game, true, depth - 1, alpha, beta);
+                min = std::cmp::min(min, score);
+                if min <= alpha {
+                    break;
+                }
+                beta = std::cmp::min(beta, min);
+            }
+            min
         }
     }
     // random ai
