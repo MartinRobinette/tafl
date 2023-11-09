@@ -21,6 +21,9 @@ async fn main() {
     // Main graphics / input loop
     loop {
         game_state.next_turn().await;
+        if game_state.game.game_over() {
+            break;
+        }
 
         // render game
         display.borrow_mut().draw_game(&game_state.game).await;

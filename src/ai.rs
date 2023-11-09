@@ -22,12 +22,17 @@ impl AIPlayer {
         let mut rng = rand::thread_rng();
 
         let pieces = friendly_piece_positions(game);
-        let src: Tile = *pieces.choose(&mut rng).unwrap(); // panics if no pieces
+        loop {
+            let src: Tile = *pieces.choose(&mut rng).unwrap(); // panics if no pieces
+            let options: Vec<Tile> = game.get_valid_moves(src);
+            if options.len() == 0 {
+                // loops forever if no possible moves
+                continue;
+            }
+            let dest = *options.choose(&mut rng).unwrap();
 
-        let options = game.get_valid_moves(src);
-        let dest = *options.choose(&mut rng).unwrap();
-
-        (src, dest)
+            break (src, dest);
+        }
     }
 }
 

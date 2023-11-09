@@ -14,9 +14,11 @@ pub enum PieceType {
     Blank,
 }
 
+#[derive(Clone)]
 pub struct Game {
     pub board: Board,
     pub defenders_turn: bool,
+    pub defender_won: Option<bool>,
 }
 
 pub struct GameState {
@@ -36,11 +38,8 @@ pub struct Tile {
 }
 
 impl From<(usize, usize)> for Tile {
-    fn from((row, col): (usize, usize)) -> Self {
-        Tile {
-            r: row as usize,
-            c: col as usize,
-        }
+    fn from((r, c): (usize, usize)) -> Self {
+        Tile { r, c }
     }
 }
 
@@ -99,7 +98,7 @@ impl GameState {
             Player::Human(human) => human.player_turn(&self.game).await,
             Player::AI(ai) => ai.take_turn(&self.game),
         };
-        self.game.move_piece(src, dest);
+        self.game = self.game.move_piece(src, dest);
 
         // ask
         self.game.defenders_turn = !self.game.defenders_turn;
@@ -112,12 +111,6 @@ impl GameState {
             &self.attacker_player
         }
     }
-
-    // pub fn tile_clicked(&mut self, tile: Tile) {
-    //     if let PlayerType::Human = self.current_player() {
-    //         self.player_turn(tile);
-    //     }
-    // }
 }
 
 impl Game {
@@ -125,51 +118,111 @@ impl Game {
         Game {
             board: new_brandubh(), // only one board option
             defenders_turn: false, // attackers always make first move
+            defender_won: None,
         }
     }
 
-    // favor no mutation TODO: return a new game
-    pub fn move_piece(&mut self, src: Tile, dest: Tile) {
+    pub fn game_over(&self) -> bool {
+        self.defender_won.is_some()
+    }
+
+    fn piece_type(&self, tile: Tile) -> PieceType {
+        self.board[tile.r][tile.c]
+    }
+
+    fn is_corner(&self, tile: Tile) -> bool {
+        let size = self.board.len() - 1;
+        tile.r == 0 && (tile.c == 0 || tile.r == size)
+            || tile.c == 0 && (tile.r == 0 || tile.c == size)
+    }
+    fn throne_tile(&self) -> Tile {
+        let size = self.board.len() - 1;
+        (size / 2, size / 2).into()
+    }
+    fn empty_throne(&self, tile: Tile) -> bool {
+        tile == self.throne_tile() && self.piece_type(self.throne_tile()) == PieceType::Blank
+    }
+    fn flanking_piece(&self, tile: Tile) -> bool {
+        self.is_corner(tile) || self.empty_throne(tile) || self.friendly_piece(tile)
+    }
+
+    /// no checks for out of bounds, only to be used by check_king_capture
+    fn adjacent_tiles(&self, tile: Tile) -> Vec<Tile> {
+        vec![(0, -1), (0, 1), (1, 0), (-1, 0)]
+            .iter()
+            .map(|dir| next_tile(tile, *dir))
+            .collect::<Vec<Tile>>()
+    }
+
+    /// assumes tile is already flanked and tile is king
+    fn check_king_capture(&self, tile: Tile) -> bool {
+        // on throne and flanked on all sides or next to throne and flanked on 3 sides
+        if tile == self.throne_tile() || self.adjacent_tiles(self.throne_tile()).contains(&tile) {
+            // must flanked on all sides (by throne or enemy)
+            for dir in self.adjacent_tiles(tile) {
+                if !self.flanking_piece(dir) {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+    /// Checks for captures caused by given move, and if game has ended
+    /// "update game"
+    fn check_captures(&mut self, end: Tile) {
+        let directions = vec![(0, -1), (0, 1), (1, 0), (-1, 0)];
+        for dir in directions {
+            let neighbor = next_tile(end, dir);
+            let flank = next_tile(neighbor, dir);
+
+            // capture if flanked
+            if self.tile_on_board(flank) && self.enemy_piece(neighbor) && self.flanking_piece(flank)
+            {
+                if self.piece_type(neighbor) != PieceType::King {
+                    self.board[neighbor.r][neighbor.c] = PieceType::Blank;
+                } else if self.check_king_capture(neighbor) {
+                    self.defender_won = Some(self.defenders_turn);
+                    return;
+                }
+            }
+
+            // other win conditions
+            // opponent has no move options
+            // for loc in self.get_enemies() {
+            //     // TODO: use has valid move function
+            //     if !self.get_valid_moves(loc).is_empty() {
+            //         return;
+            //     }
+            // }
+        }
+    }
+
+    pub fn move_piece(&self, src: Tile, dest: Tile) -> Game {
         // might want to add validation here for valid move
         // check end is blank, start is not blank, and start is current players piece
         // and check valid move function
         // could integrate selected piece into game struct to not have to recall get valid moves and ensue player piece
-        self.board[dest.r][dest.c] = self.board[src.r][src.c];
-        self.board[src.r][src.c] = PieceType::Blank;
 
-        // check for captures
-        let directions = vec![(0, -1), (0, 1), (1, 0), (-1, 0)];
-        for dir in directions {
-            let next = next_tile(dest, dir);
-            let flank = next_tile(next, dir);
+        let mut game = self.clone();
+        game.board[dest.r][dest.c] = game.board[src.r][src.c];
+        game.board[src.r][src.c] = PieceType::Blank;
 
-            // capture if flanked
-            if self.tile_on_board(flank) && self.enemy_piece(next) && self.friendly_piece(flank) {
-                self.board[next.r][next.c] = PieceType::Blank;
-            }
-            // TODO:
-            // if next if king bead needs to be flanked on all four sides, depending on rule set
-            // need to check if flank is corner or throne, depending on rule set
-
-            // win conditions
-            // opponent has no move options
-            // king is captured and all defender beads are captured
-            // king bead on any of 4 corners (some rules say any edge piece)
+        // check for king on exit
+        if game.piece_type(dest) == PieceType::King && self.is_corner(dest) {
+            game.defender_won = Some(true);
         }
+
+        game.check_captures(dest);
+
+        game
     }
 
     fn friendly_piece(&self, tile: Tile) -> bool {
-        if self.tile_is_empty(tile) {
-            return false;
-        }
-        self.defenders_turn == self.is_defender(tile)
+        !self.tile_is_empty(tile) && self.defenders_turn == self.is_defender(tile)
     }
 
     fn enemy_piece(&self, tile: Tile) -> bool {
-        if self.tile_is_empty(tile) {
-            return false;
-        }
-        self.defenders_turn != self.is_defender(tile)
+        !self.tile_is_empty(tile) && self.defenders_turn != self.is_defender(tile)
     }
 
     pub fn board_size(&self) -> usize {
@@ -202,6 +255,8 @@ impl Game {
     }
 
     pub fn get_valid_moves(&self, src: Tile) -> Vec<Tile> {
+        // no piece can end on the throne, but can move though it
+        // only king can end on an exit (corner)
         let mut valid_moves = Vec::<Tile>::new();
         if !self.tile_on_board(src) || self.tile_is_empty(src) {
             return valid_moves;
@@ -210,7 +265,9 @@ impl Game {
             let dir = (*r, *c);
             let mut dest = next_tile(src, dir);
             while self.tile_on_board(dest) && self.tile_is_empty(dest) {
-                valid_moves.push(dest);
+                if dest != self.throne_tile() {
+                    valid_moves.push(dest);
+                }
                 dest = next_tile(dest, dir);
             }
         }
