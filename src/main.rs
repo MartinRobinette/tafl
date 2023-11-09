@@ -33,13 +33,11 @@ async fn main() {
         game_state.next_turn().await;
         let time2 = macroquad::time::get_time();
         let time_taken = time2 - time;
-        //println!("turn took {} seconds", time_taken);
-        if !game_state.game.defenders_turn {
-            // tracks defender
-            total_time += time_taken;
-            total_turs += 1;
-            println!("average time: {}", total_time / total_turs as f64);
-        }
+
+        total_time += time_taken;
+        total_turs += 1;
+        println!("average time: {}", total_time / total_turs as f64);
+
         if game_state.game.game_over {
             break;
         }
