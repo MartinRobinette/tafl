@@ -178,8 +178,7 @@ impl Game {
 
     fn is_corner(&self, tile: Tile) -> bool {
         let size = self.board.0.len() - 1;
-        (tile.r == 0 && (tile.c == 0 || tile.c == size))
-            || (tile.r == size && (tile.c == 0 || tile.c == size))
+        (tile.r == size || tile.r == 0) && (tile.c == size || tile.c == 0)
     }
 
     fn throne_tile(&self) -> Tile {
@@ -195,7 +194,7 @@ impl Game {
 
     /// no checks for out of bounds, only to be used by check_king_capture
     fn adjacent_tiles(&self, tile: Tile) -> Vec<Tile> {
-        vec![(0, -1), (0, 1), (1, 0), (-1, 0)]
+        [(0, -1), (0, 1), (1, 0), (-1, 0)]
             .iter()
             .map(|dir| next_tile(tile, *dir))
             .collect::<Vec<Tile>>()
@@ -332,7 +331,7 @@ impl Game {
         moves
     }
 
-    pub fn get_valid_moves<'a>(&'a self, src: Tile) -> impl Iterator<Item = (Tile, Tile)> + 'a {
+    pub fn get_valid_moves(&self, src: Tile) -> impl Iterator<Item = (Tile, Tile)> + '_ {
         // no piece can end on the throne, but can move though it
         // only king can end on an exit (corner)
 
@@ -347,7 +346,7 @@ impl Game {
     }
 
     // remove closure and call function
-    pub fn get_all_valid_moves<'a>(&'a self) -> impl Iterator<Item = (Tile, Tile)> + 'a {
+    pub fn get_all_valid_moves(&self) -> impl Iterator<Item = (Tile, Tile)> + '_ {
         let size = self.board.0.len();
         (0..size).flat_map(move |r| {
             (0..size)
@@ -366,8 +365,8 @@ impl Game {
             return std::i32::MIN;
         }
         let mut score = 0;
-        let defender_score = 20;
-        let attacker_score = 10;
+        let attacker_score = 20;
+        let defender_score = attacker_score * 2;
         let king_score = defender_score * 10;
         for (r, row) in self.board.0.iter().enumerate() {
             let mut has_def = false;

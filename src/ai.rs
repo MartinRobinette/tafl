@@ -36,7 +36,7 @@ impl AIPlayer {
             let score = minimax(new_game, depth, std::i32::MIN, std::i32::MAX);
             //println!("score: {}", score);
             //println!("depth: {}, score: {}", depth, score);
-            if best_dest == None {
+            if best_dest.is_none() {
                 // init to first move
                 best_src = Some(src);
                 best_dest = Some(dest);
@@ -49,7 +49,7 @@ impl AIPlayer {
             }
         }
 
-        if let None = best_src {
+        if best_src.is_none() {
             panic!("no valid moves");
         }
 
@@ -63,7 +63,7 @@ impl AIPlayer {
         loop {
             let src: Tile = *pieces.choose(&mut rng).unwrap(); // panics if no pieces
             let options: Vec<(Tile, Tile)> = game.get_valid_moves(src).collect();
-            if options.len() == 0 {
+            if options.is_empty() {
                 // loops forever if no possible moves
                 continue;
             }
