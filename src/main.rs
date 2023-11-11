@@ -1,6 +1,5 @@
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::thread::sleep;
 use std::{thread, time};
 use tafl::ai::{AIKind, AIPlayer};
 use tafl::game::{GameState, Player};
@@ -12,14 +11,14 @@ async fn main() {
     let display = Rc::new(RefCell::new(Display::new()));
 
     // players
-    let attacker = Player::AI(AIPlayer {
-        kind: AIKind::Minimax,
-    });
+    // let attacker = Player::AI(AIPlayer {
+    //     kind: AIKind::Minimax,
+    // });
     let defender = Player::AI(AIPlayer {
         kind: AIKind::Minimax,
     });
     //let defender = Player::Human(HumanPlayer::new(Rc::clone(&display)));
-    //let attacker = Player::Human(HumanPlayer::new(Rc::clone(&display)));
+    let attacker = Player::Human(HumanPlayer::new(Rc::clone(&display)));
 
     let mut game_state = GameState::new(defender, attacker);
 
@@ -30,10 +29,8 @@ async fn main() {
 
     // Main graphics / input loop
     let mut total_time = 0_f64;
-    let mut total_turs = 0;
-    println!("starting game");
-    // thread::sleep(time::Duration::from_millis(100));
-    // panic!("stop");
+    let mut total_turns = 0;
+
     loop {
         let time = macroquad::time::get_time();
         game_state.next_turn().await;
@@ -41,8 +38,8 @@ async fn main() {
         let time_taken = time2 - time;
 
         total_time += time_taken;
-        total_turs += 1;
-        println!("average time: {}", total_time / total_turs as f64);
+        total_turns += 1;
+        println!("average time: {}", total_time / total_turns as f64);
 
         if game_state.game.game_over {
             break;
