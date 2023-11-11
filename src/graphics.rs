@@ -114,7 +114,7 @@ fn draw_board(game: &Game) {
 }
 
 fn draw_pieces(game: &Game) {
-    for (r, row) in game.board.clone().iter().enumerate() {
+    for (r, row) in game.board.0.iter().enumerate() {
         for (c, item) in row.iter().enumerate() {
             use PieceType::*;
             let color = match item {

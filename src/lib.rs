@@ -3,7 +3,7 @@ pub mod game;
 pub mod graphics;
 pub mod human;
 
-pub mod preleude {
+pub mod prelude {
     pub use crate::game::{Game, PieceType, Tile};
     pub use crate::graphics::Display;
 }

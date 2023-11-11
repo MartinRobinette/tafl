@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::{thread, time};
+//use std::{thread, time};
 use tafl::ai::{AIKind, AIPlayer};
 use tafl::game::{GameState, Player};
 use tafl::graphics::Display;
@@ -18,7 +18,7 @@ async fn main() {
         kind: AIKind::Minimax,
     });
     //let defender = Player::Human(HumanPlayer::new(Rc::clone(&display)));
-    let attacker = Player::Human(HumanPlayer::new(Rc::clone(&display)));
+    //let attacker = Player::Human(HumanPlayer::new(Rc::clone(&display)));
 
     let mut game_state = GameState::new(defender, attacker);
 
@@ -44,8 +44,8 @@ async fn main() {
         // render game
         display.borrow_mut().draw_game(&game_state.game).await;
     }
-    //println!("game over");
-    //loop {
-    //display.borrow_mut().draw_game(&game_state.game).await;
-    //}
+    // println!("game over");
+    // loop {
+    //     display.borrow_mut().draw_game(&game_state.game).await;
+    // }
 }

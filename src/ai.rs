@@ -23,9 +23,6 @@ impl AIPlayer {
         let is_maximizing = game.defenders_turn;
         let depth = 4;
 
-        let alpha = std::i32::MIN;
-        let beta = std::i32::MAX;
-
         let mut best_src = None;
         let mut best_dest = None;
 
@@ -34,64 +31,36 @@ impl AIPlayer {
         } else {
             std::i32::MAX
         };
+
         for (src, dest) in game.get_all_valid_moves() {
-            let new_game = game.move_piece(src, dest);
-            let score = self.minimax(new_game, is_maximizing, depth, alpha, beta);
-            if is_maximizing && score > best_score {
-                best_score = score;
+            let new_game = game.gen_next(src, dest);
+            let score = minimax(new_game, depth, std::i32::MIN, std::i32::MAX);
+            //println!("score: {}", score);
+            //println!("depth: {}, score: {}", depth, score);
+            if best_dest == None {
+                // init to first move
                 best_src = Some(src);
                 best_dest = Some(dest);
             }
-            if !is_maximizing && score < best_score {
+            if is_maximizing && score == std::i32::MAX || !is_maximizing && score == std::i32::MIN {
+                // found winning move
+                return (src, dest);
+            }
+
+            if (is_maximizing && score > best_score) || (!is_maximizing && score < best_score) {
                 best_score = score;
                 best_src = Some(src);
                 best_dest = Some(dest);
             }
         }
+
         if let None = best_src {
             panic!("no valid moves");
         }
 
         (best_src.unwrap(), best_dest.unwrap())
     }
-    // depth counts down and stops at zero
-    fn minimax(&self, game: Game, is_maximizing: bool, depth: u32, alpha: i32, beta: i32) -> i32 {
-        // check depth
-        // check terminal state
-        if depth == 0 || game.game_over {
-            return game.score();
-        }
-
-        if is_maximizing {
-            let mut max = std::i32::MIN;
-            let mut alpha = alpha;
-            for (src, dest) in game.get_all_valid_moves() {
-                let new_game = game.move_piece(src, dest);
-                let score = self.minimax(new_game, false, depth - 1, alpha, beta);
-                max = std::cmp::max(max, score);
-                if max > beta {
-                    break;
-                }
-                alpha = std::cmp::max(alpha, max);
-            }
-            max
-        } else {
-            // minimizing agent
-            let mut min = std::i32::MAX;
-            let mut beta = beta;
-            for (src, dest) in game.get_all_valid_moves() {
-                let new_game = game.move_piece(src, dest);
-                let score = self.minimax(new_game, true, depth - 1, alpha, beta);
-                min = std::cmp::min(min, score);
-                if min < alpha {
-                    break;
-                }
-                beta = std::cmp::min(beta, min);
-            }
-            min
-        }
-    }
-    // random ai
+    // // random ai
     fn random_turn(&self, game: &Game) -> (Tile, Tile) {
         let mut rng = rand::thread_rng();
 
@@ -108,6 +77,38 @@ impl AIPlayer {
     }
 }
 
+// depth counts down and stops at zero
+fn minimax(game: Game, depth: u32, mut alpha: i32, mut beta: i32) -> i32 {
+    if depth == 0 || game.game_over {
+        game.score()
+    } else if game.defenders_turn {
+        //maximizing player
+        let mut max = std::i32::MIN;
+        for (src, dest) in game.get_all_valid_moves() {
+            let new_game = game.gen_next(src, dest);
+            max = std::cmp::max(max, minimax(new_game, depth - 1, alpha, beta));
+            if max > beta {
+                break;
+            }
+            alpha = std::cmp::max(alpha, max);
+        }
+        max
+    } else {
+        // minimizing agent
+        let mut min = std::i32::MAX;
+        for (src, dest) in game.get_all_valid_moves() {
+            let new_game = game.gen_next(src, dest);
+            min = std::cmp::min(min, minimax(new_game, depth - 1, alpha, beta));
+            if min < alpha {
+                break;
+            }
+            beta = std::cmp::min(beta, min);
+        }
+        min
+    }
+}
+
+// helper for random ai
 fn friendly_piece_positions(game: &Game) -> Vec<Tile> {
     // TODO: change to iterator?
     let mut positions = Vec::new();
@@ -123,4 +124,30 @@ fn friendly_piece_positions(game: &Game) -> Vec<Tile> {
         }
     }
     positions
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::game::{Board, PieceType};
+
+    fn new_game(board: Board) -> Game {
+        Game {
+            board,
+            defenders_turn: true,
+            game_over: false,
+            defender_won: false,
+        }
+    }
+
+    #[test]
+    fn win_the_game() {
+        let mut board = Board::empty();
+        board.0[1][1] = PieceType::King;
+        board.0[3][2] = PieceType::Attacker;
+        let game = new_game(board);
+
+        let score = minimax(game, 2, std::i32::MIN, std::i32::MAX);
+        assert_eq!(score, std::i32::MAX);
+    }
 }

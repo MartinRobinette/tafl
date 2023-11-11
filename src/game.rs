@@ -6,7 +6,7 @@ pub enum Player {
     AI(AIPlayer),
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum PieceType {
     Attacker,
     Defender,
@@ -61,20 +61,36 @@ impl From<(i32, i32)> for Tile {
 }
 
 const BOARD_SIZE: usize = 7; // TODO: unify board size
-pub type Board = [[PieceType; BOARD_SIZE]; BOARD_SIZE];
+#[derive(Eq, PartialEq, Clone, Debug)]
+pub struct Board(pub [[PieceType; BOARD_SIZE]; BOARD_SIZE]);
 
-fn new_brandubh() -> Board {
-    use PieceType::{Attacker as A, Blank as B};
-    use PieceType::{Defender as D, King as K};
-    [
-        [B, B, B, A, B, B, B],
-        [B, B, B, A, B, B, B],
-        [B, B, B, D, B, B, B],
-        [A, A, D, K, D, A, A],
-        [B, B, B, D, B, B, B],
-        [B, B, B, A, B, B, B],
-        [B, B, B, A, B, B, B],
-    ]
+impl Board {
+    pub fn new_brandubh() -> Board {
+        use PieceType::{Attacker as A, Blank as B};
+        use PieceType::{Defender as D, King as K};
+        Board([
+            [B, B, B, A, B, B, B],
+            [B, B, B, A, B, B, B],
+            [B, B, B, D, B, B, B],
+            [A, A, D, K, D, A, A],
+            [B, B, B, D, B, B, B],
+            [B, B, B, A, B, B, B],
+            [B, B, B, A, B, B, B],
+        ])
+    }
+    #[cfg(test)]
+    pub fn empty() -> Board {
+        use PieceType::Blank as B;
+        Board([
+            [B, B, B, B, B, B, B],
+            [B, B, B, B, B, B, B],
+            [B, B, B, B, B, B, B],
+            [B, B, B, B, B, B, B],
+            [B, B, B, B, B, B, B],
+            [B, B, B, B, B, B, B],
+            [B, B, B, B, B, B, B],
+        ])
+    }
 }
 
 // i do not like this
@@ -104,10 +120,7 @@ impl GameState {
             Player::Human(human) => human.player_turn(&self.game).await,
             Player::AI(ai) => ai.take_turn(&self.game),
         };
-        self.game = self.game.move_piece(src, dest);
-
-        // ask
-        self.game.defenders_turn = !self.game.defenders_turn;
+        self.game = self.game.gen_next(src, dest); // this also changes turn
     }
 
     pub fn current_player(&self) -> &Player {
@@ -122,25 +135,25 @@ impl GameState {
 impl Game {
     pub fn new() -> Self {
         Game {
-            board: new_brandubh(), // only one board option
-            defenders_turn: false, // attackers always make first move
+            board: Board::new_brandubh(), // only one board option
+            defenders_turn: false,        // attackers always make first move
             game_over: false,
             defender_won: false,
         }
     }
 
     fn piece_type(&self, tile: Tile) -> PieceType {
-        self.board[tile.r][tile.c]
+        self.board.0[tile.r][tile.c]
     }
 
     fn is_corner(&self, tile: Tile) -> bool {
-        let size = self.board.len() - 1;
+        let size = self.board.0.len() - 1;
         (tile.r == 0 && (tile.c == 0 || tile.c == size))
             || (tile.r == size && (tile.c == 0 || tile.c == size))
     }
 
     fn throne_tile(&self) -> Tile {
-        let size = self.board.len() - 1;
+        let size = self.board.0.len() - 1;
         (size / 2, size / 2).into()
     }
     fn empty_throne(&self, tile: Tile) -> bool {
@@ -173,6 +186,7 @@ impl Game {
     }
     /// Checks for captures caused by given move, and if game has ended
     /// "update game"
+    /// TODO: change to not mut
     fn check_captures(&mut self, end: Tile) {
         let directions = vec![(0, -1), (0, 1), (1, 0), (-1, 0)];
         for dir in directions {
@@ -183,7 +197,7 @@ impl Game {
             if self.tile_on_board(flank) && self.enemy_piece(neighbor) && self.flanking_piece(flank)
             {
                 if self.piece_type(neighbor) != PieceType::King {
-                    self.board[neighbor.r][neighbor.c] = PieceType::Blank;
+                    self.board.0[neighbor.r][neighbor.c] = PieceType::Blank;
                 } else if self.check_king_capture(neighbor) {
                     self.defender_won = false;
                     self.game_over = true;
@@ -202,15 +216,15 @@ impl Game {
         }
     }
 
-    pub fn move_piece(&self, src: Tile, dest: Tile) -> Game {
+    pub fn gen_next(&self, src: Tile, dest: Tile) -> Game {
         // might want to add validation here for valid move
         // check end is blank, start is not blank, and start is current players piece
         // and check valid move function
         // could integrate selected piece into game struct to not have to recall get valid moves and ensue player piece
 
         let mut game = self.clone();
-        game.board[dest.r][dest.c] = game.board[src.r][src.c];
-        game.board[src.r][src.c] = PieceType::Blank;
+        game.board.0[dest.r][dest.c] = game.board.0[src.r][src.c];
+        game.board.0[src.r][src.c] = PieceType::Blank;
 
         // check for king on exit
         if game.piece_type(dest) == PieceType::King && self.is_corner(dest) {
@@ -219,6 +233,9 @@ impl Game {
         }
 
         game.check_captures(dest);
+
+        //change turn
+        game.defenders_turn = !game.defenders_turn;
 
         game
     }
@@ -237,16 +254,16 @@ impl Game {
     }
 
     pub fn tile_on_board(&self, tile: Tile) -> bool {
-        tile.r < self.board.len() && tile.c < self.board.len()
+        tile.r < self.board.0.len() && tile.c < self.board.0.len()
     }
 
     pub fn tile_is_empty(&self, tile: Tile) -> bool {
-        matches!(self.board[tile.r][tile.c], PieceType::Blank)
+        matches!(self.board.0[tile.r][tile.c], PieceType::Blank)
     }
 
     /// Returns true if the tile is a defender or king
     pub fn is_defender(&self, src: Tile) -> bool {
-        match self.board[src.r][src.c] {
+        match self.board.0[src.r][src.c] {
             PieceType::Attacker | PieceType::Blank => false,
             PieceType::King | PieceType::Defender => true,
         }
@@ -266,7 +283,9 @@ impl Game {
         let mut dest = next_tile(src, dir);
 
         while self.tile_on_board(dest) && self.tile_is_empty(dest) {
-            if dest != self.throne_tile() {
+            if dest != self.throne_tile()
+                && !(self.is_corner(dest) && !(self.piece_type(src) == PieceType::King))
+            {
                 moves.push((src, dest));
             }
             dest = next_tile(dest, dir);
@@ -289,8 +308,9 @@ impl Game {
             .flat_map(move |dir| self.moves_in_direction(src, *dir).into_iter())
     }
 
+    // remove closure and call function
     pub fn get_all_valid_moves<'a>(&'a self) -> impl Iterator<Item = (Tile, Tile)> + 'a {
-        let size = self.board.len();
+        let size = self.board.0.len();
         (0..size).flat_map(move |r| {
             (0..size)
                 // for all locations
@@ -308,16 +328,77 @@ impl Game {
             return std::i32::MIN;
         }
         let mut score = 0;
-        for row in self.board.iter() {
+        let defender_score = 20;
+        let attacker_score = 10;
+        let king_score = defender_score * 49;
+        for row in self.board.0.iter() {
+            let mut empty = true;
             for piece in row.iter() {
+                if piece != &PieceType::Blank {
+                    empty = false;
+                }
                 match piece {
-                    PieceType::Defender => score += 1,
-                    PieceType::Attacker => score -= 1,
-                    PieceType::King => score += 100,
+                    PieceType::Defender => score += defender_score,
+                    PieceType::Attacker => score -= attacker_score,
+                    PieceType::King => score += king_score,
                     PieceType::Blank => (),
                 }
             }
+            score += if empty { 50 } else { 0 };
         }
         score
     }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    fn new_game(board: Board) -> Game {
+        Game {
+            board,
+            defenders_turn: true,
+            game_over: false,
+            defender_won: false,
+        }
+    }
+
+    #[test]
+    fn win_loss() {
+        let mut board = Board::empty();
+        board.0[0][3] = PieceType::King;
+        let game = new_game(board);
+        assert_eq!(game.score(), 100);
+
+        let src = (0, 3).into();
+        let dest = (0, 0).into();
+        let game = game.gen_next(src, dest);
+        assert!(game.game_over);
+        assert!(game.defender_won);
+        assert_eq!(game.score(), std::i32::MAX);
+    }
+
+    #[test]
+    fn game_change_on_move() {
+        let game = Game::new();
+        let src = (2, 3).into();
+        let dest = (2, 2).into();
+        let new_game = game.gen_next(src, dest);
+
+        assert_ne!(game.defenders_turn, new_game.defenders_turn);
+        assert_ne!(game.board, new_game.board);
+
+        assert_eq!(new_game.board.0[src.r][src.c], PieceType::Blank);
+        assert_ne!(new_game.board.0[dest.r][dest.c], PieceType::Blank);
+    }
+
+    // #[test]
+    // fn game_change_on_capture() {
+    //     let mut game = Game::new();
+    //     let src = (2, 3).into(); //
+    //     let dest = (2, 2).into(); //
+    //     let dest2 = (2, 1).into();
+    //     game = game.gen_next(src, dest);
+    //     game = game.gen_next(dest, dest2);
+    // }
 }
