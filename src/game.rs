@@ -182,6 +182,14 @@ impl Game {
                 }
             }
         }
+        // king cannot be captured against a corner
+        if self
+            .adjacent_tiles(tile)
+            .iter()
+            .any(|&adjacent| self.is_corner(adjacent))
+        {
+            return false;
+        }
         true
     }
     /// Checks for captures caused by given move, and if game has ended
