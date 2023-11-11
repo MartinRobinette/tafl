@@ -42,12 +42,9 @@ impl AIPlayer {
                 best_src = Some(src);
                 best_dest = Some(dest);
             }
-            if is_maximizing && score == std::i32::MAX || !is_maximizing && score == std::i32::MIN {
-                // found winning move
-                return (src, dest);
-            }
 
             if (is_maximizing && score > best_score) || (!is_maximizing && score < best_score) {
+                println!("score updated this turn: {}", score);
                 best_score = score;
                 best_src = Some(src);
                 best_dest = Some(dest);

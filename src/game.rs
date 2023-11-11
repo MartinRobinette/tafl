@@ -329,30 +329,44 @@ impl Game {
 
     pub fn score(&self) -> i32 {
         // defender maximizing
-        if self.game_over && self.defender_won {
-            return std::i32::MAX;
-        }
-        if self.game_over && !self.defender_won {
-            return std::i32::MIN;
-        }
+        // if self.game_over && self.defender_won {
+        //     return 10000; //std::i32::MAX;
+        // }
+        // if self.game_over && !self.defender_won {
+        //     return -10000; //std::i32::MIN;
+        // }
         let mut score = 0;
-        let defender_score = 20;
+        let defender_score = 10;
         let attacker_score = 10;
-        let king_score = defender_score * 49;
-        for row in self.board.0.iter() {
-            let mut empty = true;
-            for piece in row.iter() {
-                if piece != &PieceType::Blank {
-                    empty = false;
-                }
+        let king_score = defender_score * 10;
+        for (r, row) in self.board.0.iter().enumerate() {
+            let mut has_def = false;
+            let mut has_atk = false;
+            for (c, piece) in row.iter().enumerate() {
                 match piece {
-                    PieceType::Defender => score += defender_score,
-                    PieceType::Attacker => score -= attacker_score,
-                    PieceType::King => score += king_score,
+                    PieceType::Defender => {
+                        score += defender_score;
+                        has_def = true
+                    }
+                    PieceType::Attacker => {
+                        score -= attacker_score;
+                        has_atk = true
+                    }
+                    PieceType::King => {
+                        if self.is_corner(Tile { r, c }) {
+                            score += 1000;
+                        }
+                        if (Tile { r, c }) == self.throne_tile() {
+                            score -= 10; // move off of throne early
+                        }
+                        score += king_score;
+                        has_def = true;
+                    }
                     PieceType::Blank => (),
                 }
             }
-            score += if empty { 50 } else { 0 };
+            score += if has_def { 1 } else { 0 };
+            score += if has_atk { -1 } else { 0 };
         }
         score
     }
