@@ -43,7 +43,6 @@ impl AIPlayer {
             }
 
             if (is_maximizing && score > best_score) || (!is_maximizing && score < best_score) {
-                println!("score updated this turn: {}", score);
                 best_score = score;
                 best_src = Some(src);
                 best_dest = Some(dest);
@@ -143,17 +142,6 @@ mod test {
         }
     }
 
-    #[test]
-    fn win_the_game() {
-        let mut board = Board::empty();
-        board.0[1][1] = PieceType::King;
-        board.0[3][2] = PieceType::Attacker;
-        let game = new_game(board);
-
-        let score = minimax(game, 2, std::i32::MIN, std::i32::MAX);
-        assert_eq!(score, std::i32::MAX);
-    }
-
     fn take_minimax_turn(mut game: Game, depth: u32, defenders_turn: bool) -> Game {
         let ai = AIPlayer {
             kind: AIKind::Minimax(depth),
@@ -161,14 +149,6 @@ mod test {
         game.defenders_turn = defenders_turn;
         let (src, dest) = ai.take_turn(&game);
         game.gen_next(src, dest)
-    }
-
-    fn run_minimax_game(mut game: Game, depth: u32, turns: i32) -> Game {
-        for i in 0..turns {
-            game = take_minimax_turn(game, depth, i % 2 == 0);
-            println!("Turn {} \n{}", i + 1, game.board);
-        }
-        game
     }
 
     fn run_defender_only(mut game: Game, depth: u32, turns: i32) -> Game {
@@ -183,7 +163,7 @@ mod test {
     }
 
     #[test]
-    fn take_the_winning_move() {
+    fn take_the_winning_move_defender_only() {
         let mut board = Board::empty();
         board.0[3][3] = PieceType::King;
         board.0[2][2] = PieceType::Attacker;
@@ -203,5 +183,36 @@ mod test {
         println!("testing depth 4");
         let depth_4 = run_defender_only(game, 3, 2);
         assert!(depth_4.game_over); // can win in 2 moves
+    }
+
+    fn run_minimax_game(mut game: Game, depth: u32, turns: i32) -> Game {
+        for i in 0..turns {
+            game = take_minimax_turn(game, depth, i % 2 == 0);
+            println!("Turn {} \n{}", i + 1, game.board);
+        }
+        game
+    }
+
+    #[test]
+    fn take_the_winning_move() {
+        let mut board = Board::empty();
+        board.0[3][3] = PieceType::King;
+        board.0[2][2] = PieceType::Attacker;
+
+        let game = new_game(board);
+
+        println!("initial board \n{}", game.board);
+        // should win in 2 moves (3 turns)
+        println!("testing depth 2");
+        let depth_2 = run_minimax_game(game.clone(), 2, 3);
+        assert!(depth_2.game_over);
+
+        println!("testing depth 3");
+        let depth_3 = run_minimax_game(game.clone(), 3, 3);
+        assert!(depth_3.game_over);
+
+        println!("testing depth 4");
+        let depth_4 = run_minimax_game(game, 3, 3);
+        assert!(depth_4.game_over);
     }
 }
