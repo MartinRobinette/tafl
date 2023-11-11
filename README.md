@@ -7,6 +7,15 @@ talf written in rust, using the brandub board and ruleset
 ## To run
 use `cargo run --release` as it is much faster for the ai's turn
 
+## Features
+Current
+- Can play against ai
+- Graphical display of board
+Possible Future Features
+- Better Graphics
+- Parameterized Depth (for slecting difficulty)
+- even faster ai via parallel compute
+
 ## Rules
 Taken and modified from http://tafl.cyningstan.com/page/171/brandub
 1. Brandub is played on a board of 7×7 squares, with the central square and the corner squares marked.
