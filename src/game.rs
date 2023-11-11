@@ -383,12 +383,9 @@ impl Game {
                         has_atk = true
                     }
                     PieceType::King => {
-                        // if self.is_corner(Tile { r, c }) {
-                        //     return 1000;
-                        // }
-                        // if (Tile { r, c }) == self.throne_tile() {
-                        //     score -= 10; // move off of throne early
-                        // }
+                        if (Tile { r, c }) == self.throne_tile() {
+                            score -= 1; // move off of throne early
+                        }
                         score += king_score;
                         has_def = true;
                     }
