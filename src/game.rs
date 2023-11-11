@@ -110,13 +110,14 @@ impl Board {
 impl Display for Board {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut board_str = String::new();
-        for row in self.0.iter() {
+        let size = self.0.len();
+        for r in 0..size {
             board_str.push('|');
-            for piece in row.iter() {
-                board_str.push_str(&format!("{}|", piece));
+            for c in 0..size {
+                // print flipped to match display
+                board_str.push_str(&format!("{}|", self.0[c][r]));
             }
             board_str.push('\n');
-            //board_str.push_str("\n_______________\n");
         }
         write!(f, "{}", board_str)
     }
@@ -358,12 +359,12 @@ impl Game {
 
     pub fn score(&self) -> i32 {
         // defender maximizing
-        // if self.game_over && self.defender_won {
-        //     return 10000; //std::i32::MAX;
-        // }
-        // if self.game_over && !self.defender_won {
-        //     return -10000; //std::i32::MIN;
-        // }
+        if self.game_over && self.defender_won {
+            return std::i32::MAX;
+        }
+        if self.game_over && !self.defender_won {
+            return std::i32::MIN;
+        }
         let mut score = 0;
         let defender_score = 20;
         let attacker_score = 10;
@@ -382,12 +383,12 @@ impl Game {
                         has_atk = true
                     }
                     PieceType::King => {
-                        if self.is_corner(Tile { r, c }) {
-                            return 1000;
-                        }
-                        if (Tile { r, c }) == self.throne_tile() {
-                            //score -= 10; // move off of throne early
-                        }
+                        // if self.is_corner(Tile { r, c }) {
+                        //     return 1000;
+                        // }
+                        // if (Tile { r, c }) == self.throne_tile() {
+                        //     score -= 10; // move off of throne early
+                        // }
                         score += king_score;
                         has_def = true;
                     }
@@ -426,7 +427,7 @@ mod test {
         let game = game.gen_next(src, dest);
         assert!(game.game_over);
         assert!(game.defender_won);
-        assert_eq!(game.score(), 1000);
+        assert_eq!(game.score(), std::i32::MAX);
     }
 
     #[test]
