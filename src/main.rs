@@ -12,12 +12,12 @@ async fn main() {
 
     // players
     // let attacker = Player::AI(AIPlayer {
-    //     kind: AIKind::Minimax,
+    //     kind: AIKind::Minimax(4),
     // });
     let defender = Player::AI(AIPlayer {
-        kind: AIKind::Minimax,
+        kind: AIKind::Minimax(4),
     });
-    //let defender = Player::Human(HumanPlayer::new(Rc::clone(&display)));
+    // let defender = Player::Human(HumanPlayer::new(Rc::clone(&display)));
     let attacker = Player::Human(HumanPlayer::new(Rc::clone(&display)));
 
     let mut game_state = GameState::new(defender, attacker);
@@ -39,6 +39,7 @@ async fn main() {
 
         total_time += time_taken;
         total_turns += 1;
+        // println!("{}", game_state.game.board);
         println!("average time: {}", total_time / total_turns as f64);
 
         if game_state.game.game_over {
