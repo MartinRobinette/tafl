@@ -336,7 +336,7 @@ impl Game {
         //     return -10000; //std::i32::MIN;
         // }
         let mut score = 0;
-        let defender_score = 10;
+        let defender_score = 20;
         let attacker_score = 10;
         let king_score = defender_score * 10;
         for (r, row) in self.board.0.iter().enumerate() {
@@ -354,11 +354,11 @@ impl Game {
                     }
                     PieceType::King => {
                         if self.is_corner(Tile { r, c }) {
-                            score += 1000;
+                            return 1000;
                         }
-                        if (Tile { r, c }) == self.throne_tile() {
-                            score -= 10; // move off of throne early
-                        }
+                        // if (Tile { r, c }) == self.throne_tile() {
+                        //     //score -= 10; // move off of throne early
+                        // }
                         score += king_score;
                         has_def = true;
                     }
