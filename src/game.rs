@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::ai::AIPlayer;
 use crate::human::HumanPlayer;
 // did not want to use async-trait crate
@@ -12,6 +14,18 @@ pub enum PieceType {
     Defender,
     King,
     Blank,
+}
+
+impl Display for PieceType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let piece_str = match self {
+            PieceType::Attacker => "A",
+            PieceType::Defender => "D",
+            PieceType::King => "K",
+            PieceType::Blank => " ",
+        };
+        write!(f, "{}", piece_str)
+    }
 }
 
 #[derive(Clone)]
@@ -90,6 +104,21 @@ impl Board {
             [B, B, B, B, B, B, B],
             [B, B, B, B, B, B, B],
         ])
+    }
+}
+
+impl Display for Board {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut board_str = String::new();
+        for row in self.0.iter() {
+            board_str.push('|');
+            for piece in row.iter() {
+                board_str.push_str(&format!("{}|", piece));
+            }
+            board_str.push('\n');
+            //board_str.push_str("\n_______________\n");
+        }
+        write!(f, "{}", board_str)
     }
 }
 
@@ -356,9 +385,9 @@ impl Game {
                         if self.is_corner(Tile { r, c }) {
                             return 1000;
                         }
-                        // if (Tile { r, c }) == self.throne_tile() {
-                        //     //score -= 10; // move off of throne early
-                        // }
+                        if (Tile { r, c }) == self.throne_tile() {
+                            //score -= 10; // move off of throne early
+                        }
                         score += king_score;
                         has_def = true;
                     }
@@ -390,14 +419,14 @@ mod test {
         let mut board = Board::empty();
         board.0[0][3] = PieceType::King;
         let game = new_game(board);
-        assert_eq!(game.score(), 100);
+        assert_eq!(game.score(), 201); // 200 king + 1 flank held
 
         let src = (0, 3).into();
         let dest = (0, 0).into();
         let game = game.gen_next(src, dest);
         assert!(game.game_over);
         assert!(game.defender_won);
-        assert_eq!(game.score(), std::i32::MAX);
+        assert_eq!(game.score(), 1000);
     }
 
     #[test]
@@ -413,14 +442,4 @@ mod test {
         assert_eq!(new_game.board.0[src.r][src.c], PieceType::Blank);
         assert_ne!(new_game.board.0[dest.r][dest.c], PieceType::Blank);
     }
-
-    // #[test]
-    // fn game_change_on_capture() {
-    //     let mut game = Game::new();
-    //     let src = (2, 3).into(); //
-    //     let dest = (2, 2).into(); //
-    //     let dest2 = (2, 1).into();
-    //     game = game.gen_next(src, dest);
-    //     game = game.gen_next(dest, dest2);
-    // }
 }

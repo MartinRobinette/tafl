@@ -3,7 +3,7 @@ use rand::seq::SliceRandom;
 
 pub enum AIKind {
     Random,
-    Minimax,
+    Minimax(u32),
 }
 
 pub struct AIPlayer {
@@ -14,14 +14,13 @@ impl AIPlayer {
     pub fn take_turn(&self, game: &Game) -> (Tile, Tile) {
         match self.kind {
             AIKind::Random => self.random_turn(game),
-            AIKind::Minimax => self.minimax_turn(game),
+            AIKind::Minimax(depth) => self.minimax_turn(game, depth),
         }
     }
     // minimax ai
-    fn minimax_turn(&self, game: &Game) -> (Tile, Tile) {
+    fn minimax_turn(&self, game: &Game, depth: u32) -> (Tile, Tile) {
         // defender is maximizing agent
         let is_maximizing = game.defenders_turn;
-        let depth = 4;
 
         let mut best_src = None;
         let mut best_dest = None;
@@ -76,6 +75,7 @@ impl AIPlayer {
 
 // depth counts down and stops at zero
 fn minimax(game: Game, depth: u32, mut alpha: i32, mut beta: i32) -> i32 {
+    let discount = 0.99;
     if depth == 0 || game.game_over {
         game.score()
     } else if game.defenders_turn {
@@ -83,7 +83,10 @@ fn minimax(game: Game, depth: u32, mut alpha: i32, mut beta: i32) -> i32 {
         let mut max = std::i32::MIN;
         for (src, dest) in game.get_all_valid_moves() {
             let new_game = game.gen_next(src, dest);
-            max = std::cmp::max(max, minimax(new_game, depth - 1, alpha, beta));
+            max = std::cmp::max(
+                max,
+                (minimax(new_game, depth - 1, alpha, beta) as f32 * discount) as i32,
+            );
             if max > beta {
                 break;
             }
@@ -95,7 +98,10 @@ fn minimax(game: Game, depth: u32, mut alpha: i32, mut beta: i32) -> i32 {
         let mut min = std::i32::MAX;
         for (src, dest) in game.get_all_valid_moves() {
             let new_game = game.gen_next(src, dest);
-            min = std::cmp::min(min, minimax(new_game, depth - 1, alpha, beta));
+            min = std::cmp::min(
+                min,
+                (minimax(new_game, depth - 1, alpha, beta) as f32 * discount) as i32,
+            );
             if min < alpha {
                 break;
             }
@@ -146,5 +152,56 @@ mod test {
 
         let score = minimax(game, 2, std::i32::MIN, std::i32::MAX);
         assert_eq!(score, std::i32::MAX);
+    }
+
+    fn take_minimax_turn(mut game: Game, depth: u32, defenders_turn: bool) -> Game {
+        let ai = AIPlayer {
+            kind: AIKind::Minimax(depth),
+        };
+        game.defenders_turn = defenders_turn;
+        let (src, dest) = ai.take_turn(&game);
+        game.gen_next(src, dest)
+    }
+
+    fn run_minimax_game(mut game: Game, depth: u32, turns: i32) -> Game {
+        for i in 0..turns {
+            game = take_minimax_turn(game, depth, i % 2 == 0);
+            println!("Turn {} \n{}", i + 1, game.board);
+        }
+        game
+    }
+
+    fn run_defender_only(mut game: Game, depth: u32, turns: i32) -> Game {
+        for i in 0..turns {
+            game = take_minimax_turn(game, depth, true);
+            println!("Defender only Turn {} \n{}", i + 1, game.board);
+            if game.game_over {
+                break;
+            }
+        }
+        game
+    }
+
+    #[test]
+    fn take_the_winning_move() {
+        let mut board = Board::empty();
+        board.0[3][3] = PieceType::King;
+        board.0[2][2] = PieceType::Attacker;
+
+        let game = new_game(board);
+
+        println!("initial board \n{}", game.board);
+
+        println!("testing depth 2");
+        let depth_2 = run_defender_only(game.clone(), 2, 2);
+        assert!(depth_2.game_over); // can win in 2 moves
+
+        println!("testing depth 3");
+        let depth_3 = run_defender_only(game.clone(), 3, 2);
+        assert!(depth_3.game_over); // can win in 2 moves
+
+        println!("testing depth 4");
+        let depth_4 = run_defender_only(game, 3, 2);
+        assert!(depth_4.game_over); // can win in 2 moves
     }
 }
