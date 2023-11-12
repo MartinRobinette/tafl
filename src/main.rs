@@ -37,8 +37,11 @@ async fn main() {
         let time2 = macroquad::time::get_time();
         let time_taken = time2 - time;
 
-        total_time += time_taken;
-        total_turns += 1;
+        // only increment if plyaer is ai
+        if let Player::AI(_) = game_state.current_player() {
+            total_time += time_taken;
+            total_turns += 1;
+        }
         // println!("{}", game_state.game.board);
         println!("average time: {}", total_time / total_turns as f64);
 
