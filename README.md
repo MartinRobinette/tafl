@@ -11,10 +11,14 @@ use `cargo run --release` as it is much faster for the ai's turn
 Current
 - Can play against ai
 - Graphical display of board
+- multi core usage to speed up ai
+
 Possible Future Features
 - Better Graphics
 - Parameterized Depth (for slecting difficulty)
-- even faster ai via parallel compute
+- monte carlo ai
+- build to web
+- tracking how many states were visited for ai comparision
 
 ## Rules
 Taken and modified from http://tafl.cyningstan.com/page/171/brandub
