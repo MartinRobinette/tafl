@@ -15,10 +15,10 @@ Current
 
 Possible Future Features
 - Better Graphics
-- Parameterized Depth (for slecting difficulty)
-- monte carlo ai
+- Parameterized Depth (for selecting difficulty)
+- Monte Carlo AI
 - build to web
-- tracking how many states were visited for ai comparision
+- tracking how many states were visited for ai comparison
 
 ## Rules
 Taken and modified from http://tafl.cyningstan.com/page/171/brandub
