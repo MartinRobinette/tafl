@@ -52,5 +52,3 @@ Taken and modified from http://tafl.cyningstan.com/page/171/brandub
 The current AI is using minimax with alph beta pruning. It is set to look 4 moves past the current turn.
 
 The current evaluation function benifits having more pieces and having thoese pieces spread out over the board.
-
-This AI is not 100% correct as it will thrash when playing against is self in some situations and wont always take a one move victory.
