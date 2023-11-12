@@ -9,13 +9,13 @@ use tafl::human::HumanPlayer;
 #[macroquad::main("Tafl")]
 async fn main() {
     let display = Rc::new(RefCell::new(Display::new()));
-
+    let depth = 4;
     // players
     // let attacker = Player::AI(AIPlayer {
-    //     kind: AIKind::Minimax(4),
+    //     kind: AIKind::Minimax(depth),
     // });
     let defender = Player::AI(AIPlayer {
-        kind: AIKind::Minimax(4),
+        kind: AIKind::Minimax(depth),
     });
     // let defender = Player::Human(HumanPlayer::new(Rc::clone(&display)));
     let attacker = Player::Human(HumanPlayer::new(Rc::clone(&display)));
@@ -50,8 +50,8 @@ async fn main() {
         //wait for click
         //display.borrow_mut().next_tile_click(&game_state.game).await;
     }
-    println!("game over");
-    loop {
-        display.borrow_mut().draw_game(&game_state.game).await;
-    }
+    // println!("game over");
+    // loop {
+    //     display.borrow_mut().draw_game(&game_state.game).await;
+    // }
 }

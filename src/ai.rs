@@ -1,5 +1,6 @@
 use crate::game::{Game, Tile};
 use rand::seq::SliceRandom;
+use rayon::prelude::*;
 
 pub enum AIKind {
     Random,
@@ -14,7 +15,7 @@ impl AIPlayer {
     pub fn take_turn(&self, game: &Game) -> (Tile, Tile) {
         match self.kind {
             AIKind::Random => self.random_turn(game),
-            AIKind::Minimax(depth) => self.minimax_turn(game, depth),
+            AIKind::Minimax(depth) => self.minimax_turn_rayon(game, depth),
         }
     }
     // minimax ai
@@ -54,6 +55,20 @@ impl AIPlayer {
         }
 
         (best_src.unwrap(), best_dest.unwrap())
+    }
+
+    fn minimax_turn_rayon(&self, game: &Game, depth: u32) -> (Tile, Tile) {
+        let moves = game.get_all_valid_moves().collect::<Vec<(Tile, Tile)>>();
+        let a = moves.par_iter().map(|(src, dest)| {
+            let new_game = game.gen_next(*src, *dest);
+            let score = minimax(new_game, depth, std::i32::MIN, std::i32::MAX);
+            (src, dest, score)
+        });
+
+        let (best_src, best_dest, _best_score) = a
+            .max_by_key(|(_, _, score)| if game.defenders_turn { *score } else { -score })
+            .unwrap();
+        (*best_src, *best_dest)
     }
     // // random ai
     fn random_turn(&self, game: &Game) -> (Tile, Tile) {
