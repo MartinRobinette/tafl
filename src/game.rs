@@ -416,7 +416,7 @@ mod test {
         let mut board = Board::empty();
         board.0[0][3] = PieceType::King;
         let game = new_game(board);
-        assert_eq!(game.score(), 201); // 200 king + 1 flank held
+        assert_eq!(game.score(), 401); // 400 king + 1 flank held
 
         let src = (0, 3).into();
         let dest = (0, 0).into();
