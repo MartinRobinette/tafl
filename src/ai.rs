@@ -65,9 +65,12 @@ impl AIPlayer {
             (src, dest, score)
         });
 
-        let (best_src, best_dest, _best_score) = a
-            .max_by_key(|(_, _, score)| if game.defenders_turn { *score } else { -score })
-            .unwrap();
+        let (best_src, best_dest, _best_score) = if game.defenders_turn {
+            a.max_by_key(|(_, _, score)| *score).unwrap()
+        } else {
+            a.min_by_key(|(_, _, score)| *score).unwrap()
+        };
+
         (*best_src, *best_dest)
     }
     // // random ai
@@ -178,7 +181,7 @@ mod test {
     }
 
     #[test]
-    fn take_the_winning_move_defender_only() {
+    fn take_the_winning_move_defender() {
         let mut board = Board::empty();
         board.0[3][3] = PieceType::King;
         board.0[2][2] = PieceType::Attacker;
@@ -218,16 +221,31 @@ mod test {
 
         println!("initial board \n{}", game.board);
         // should win in 2 moves (3 turns)
-        println!("testing depth 2");
-        let depth_2 = run_minimax_game(game.clone(), 2, 3);
-        assert!(depth_2.game_over);
 
-        println!("testing depth 3");
-        let depth_3 = run_minimax_game(game.clone(), 3, 3);
-        assert!(depth_3.game_over);
+        for i in 1..=4 {
+            println!("testing depth {i}");
+            let game = run_minimax_game(game.clone(), 2, 3);
+            assert!(game.game_over);
+            assert_eq!(game.defender_won, true);
+        }
+    }
 
-        println!("testing depth 4");
-        let depth_4 = run_minimax_game(game, 3, 3);
-        assert!(depth_4.game_over);
+    #[test]
+    fn take_the_winning_move_attacker() {
+        let mut board = Board::empty();
+        board.0[1][1] = PieceType::King;
+        board.0[0][1] = PieceType::Attacker;
+        board.0[2][5] = PieceType::Attacker;
+
+        let game = new_game(board);
+
+        println!("Initial Board\n{}", game.board);
+        for i in 0..=4 {
+            println!("using depth {i} attackers turn");
+            let game = take_minimax_turn(game.clone(), i, false);
+            println!("{}", game.board);
+            assert!(game.game_over);
+            assert_eq!(game.defender_won, false);
+        }
     }
 }
