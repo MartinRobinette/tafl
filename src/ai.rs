@@ -1,9 +1,9 @@
 use crate::game::{Game, Tile};
-use rand::seq::SliceRandom;
+//use rand::seq::SliceRandom;
 use rayon::prelude::*;
 
 pub enum AIKind {
-    Random,
+    //Random,
     Minimax(u32),
 }
 
@@ -14,7 +14,7 @@ pub struct AIPlayer {
 impl AIPlayer {
     pub fn take_turn(&self, game: &Game) -> (Tile, Tile) {
         match self.kind {
-            AIKind::Random => self.random_turn(game),
+     //       AIKind::Random => self.random_turn(game),
             AIKind::Minimax(depth) => self.minimax_turn_rayon(game, depth),
         }
     }
@@ -75,20 +75,20 @@ impl AIPlayer {
         (*best_src, *best_dest)
     }
     // // random ai
-    fn random_turn(&self, game: &Game) -> (Tile, Tile) {
-        let mut rng = rand::thread_rng();
+   // fn random_turn(&self, game: &Game) -> (Tile, Tile) {
+   //     let mut rng = rand::thread_rng();
 
-        let pieces = friendly_piece_positions(game);
-        loop {
-            let src: Tile = *pieces.choose(&mut rng).unwrap(); // panics if no pieces
-            let options: Vec<(Tile, Tile)> = game.get_valid_moves(src).collect();
-            if options.is_empty() {
-                // loops forever if no possible moves
-                continue;
-            }
-            break *options.choose(&mut rng).unwrap();
-        }
-    }
+   //     let pieces = friendly_piece_positions(game);
+   //     loop {
+   //         let src: Tile = *pieces.choose(&mut rng).unwrap(); // panics if no pieces
+   //         let options: Vec<(Tile, Tile)> = game.get_valid_moves(src).collect();
+   //         if options.is_empty() {
+   //             // loops forever if no possible moves
+   //             continue;
+   //         }
+   //         break *options.choose(&mut rng).unwrap();
+   //     }
+   // }
 }
 
 // depth counts down and stops at zero
@@ -130,22 +130,22 @@ fn minimax(game: Game, depth: u32, mut alpha: i32, mut beta: i32) -> i32 {
 }
 
 // helper for random ai
-fn friendly_piece_positions(game: &Game) -> Vec<Tile> {
-    // TODO: change to iterator?
-    let mut positions = Vec::new();
-    let board_size = game.board_size();
-
-    // TODO: this should not be here
-    for r in 0..board_size {
-        for c in 0..board_size {
-            let tile = (r, c).into();
-            if game.is_player_piece(tile) {
-                positions.push(tile);
-            }
-        }
-    }
-    positions
-}
+//fn friendly_piece_positions(game: &Game) -> Vec<Tile> {
+//    // TODO: change to iterator?
+//    let mut positions = Vec::new();
+//    let board_size = game.board_size();
+//
+//    // TODO: this should not be here
+//    for r in 0..board_size {
+//        for c in 0..board_size {
+//            let tile = (r, c).into();
+//            if game.is_player_piece(tile) {
+//                positions.push(tile);
+//            }
+//        }
+//    }
+//    positions
+//}
 
 #[cfg(test)]
 mod test {

@@ -53,8 +53,9 @@ async fn main() {
         }
         // render game
         display.borrow_mut().draw_game(&game_state.game).await;
-        //wait for click
-        display.borrow_mut().next_tile_click(&game_state.game).await;
+
+        //wait for click, useful for debugging
+        //display.borrow_mut().next_tile_click(&game_state.game).await;
     }
     // display winner
     println!("defender won: {:?}", game_state.game.defender_won);
