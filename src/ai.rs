@@ -15,12 +15,12 @@ impl AIPlayer {
     pub fn take_turn(&self, game: &Game) -> (Tile, Tile) {
         match self.kind {
      //       AIKind::Random => self.random_turn(game),
-            AIKind::Minimax(depth) => self.minimax_turn_rayon(game, depth),
+            AIKind::Minimax(depth) => self.minimax_turn(game, depth),
         }
     }
     // minimax ai
     // legacy function to use / reference if you dont want rayon
-    fn _minimax_turn(&self, game: &Game, depth: u32) -> (Tile, Tile) {
+    fn minimax_turn(&self, game: &Game, depth: u32) -> (Tile, Tile) {
         // defender is maximizing agent
         let is_maximizing = game.defenders_turn;
 
