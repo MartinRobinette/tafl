@@ -19,7 +19,8 @@ impl AIPlayer {
         }
     }
     // minimax ai
-    fn minimax_turn(&self, game: &Game, depth: u32) -> (Tile, Tile) {
+    // legacy function to use / reference if you dont want rayon
+    fn _minimax_turn(&self, game: &Game, depth: u32) -> (Tile, Tile) {
         // defender is maximizing agent
         let is_maximizing = game.defenders_turn;
 

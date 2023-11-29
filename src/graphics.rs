@@ -17,6 +17,11 @@ const PIECE_SIZE: f32 = TILE_SIZE / 2.5;
 pub struct Display {
     pub current_selection: Option<Tile>,
 }
+impl Default for Display {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Display {
     pub fn new() -> Self {

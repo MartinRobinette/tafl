@@ -1,3 +1,6 @@
+// we only hold when printing the display
+#![allow(clippy::await_holding_refcell_ref)]
+
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::{thread, time};
@@ -51,10 +54,14 @@ async fn main() {
         // render game
         display.borrow_mut().draw_game(&game_state.game).await;
         //wait for click
-        //display.borrow_mut().next_tile_click(&game_state.game).await;
+        display.borrow_mut().next_tile_click(&game_state.game).await;
     }
-    // println!("game over");
-    // loop {
-    //     display.borrow_mut().draw_game(&game_state.game).await;
-    // }
+    // display winner
+    println!("defender won: {:?}", game_state.game.defender_won);
+    println!("game took {} turns", total_turns);
+    println!("{}", game_state.game.board);
+    println!("game over");
+    loop {
+        display.borrow_mut().draw_game(&game_state.game).await;
+    }
 }

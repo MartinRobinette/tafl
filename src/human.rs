@@ -9,6 +9,8 @@ pub struct HumanPlayer {
     display: Rc<RefCell<Display>>,
 }
 
+// we only hold when printing the display
+#[allow(clippy::await_holding_refcell_ref)]
 impl HumanPlayer {
     pub fn new(display: Rc<RefCell<Display>>) -> Self {
         HumanPlayer { display }
@@ -17,6 +19,7 @@ impl HumanPlayer {
     async fn next_click(&self, game: &Game) -> Tile {
         self.display.borrow_mut().next_tile_click(game).await
     }
+
     fn set_selected(&self, tile: Option<Tile>) {
         self.display.borrow_mut().current_selection = tile;
     }

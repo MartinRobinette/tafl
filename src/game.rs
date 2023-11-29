@@ -320,8 +320,8 @@ impl Game {
         let mut dest = next_tile(src, dir);
 
         while self.tile_on_board(dest) && self.tile_is_empty(dest) {
-            if dest != self.throne_tile()
-                && !(self.is_corner(dest) && !(self.piece_type(src) == PieceType::King))
+            if ((self.piece_type(src) == PieceType::King) || !self.is_corner(dest))
+                && dest != self.throne_tile()
             {
                 moves.push((src, dest));
             }
@@ -371,7 +371,13 @@ impl Game {
         for (r, row) in self.board.0.iter().enumerate() {
             let mut has_def = false;
             let mut has_atk = false;
+            let mut first_seen: Option<PieceType> = None;
+            let mut last_seen = PieceType::Blank;
             for (c, piece) in row.iter().enumerate() {
+                if first_seen.is_none() {
+                    first_seen = Some(*piece);
+                }
+                last_seen = *piece;
                 match piece {
                     PieceType::Defender => {
                         score += defender_score;
@@ -390,6 +396,9 @@ impl Game {
                     }
                     PieceType::Blank => (),
                 }
+            }
+            if first_seen == Some(PieceType::Attacker) && last_seen == PieceType::Attacker {
+                score -= 2;
             }
             score += if has_def { 1 } else { 0 };
             score += if has_atk { -1 } else { 0 };
