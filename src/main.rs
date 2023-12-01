@@ -26,6 +26,7 @@ async fn main() {
 
     // render game once, to show initial state
     display.borrow_mut().draw_game(&game_state.game).await;
+    display.borrow_mut().draw_game(&game_state.game).await;
 
     // Main graphics / input loop
     loop {
