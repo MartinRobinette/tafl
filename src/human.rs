@@ -41,7 +41,6 @@ impl HumanPlayer {
             // return valid move
             let valid_moves: Vec<(Tile, Tile)> = game.get_valid_moves(src).collect();
             if valid_moves.contains(&(src, dest)) {
-                // TODO: change to is valid move
                 self.set_selected(None);
                 return (src, dest);
             } else {

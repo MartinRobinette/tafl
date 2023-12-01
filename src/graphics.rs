@@ -1,6 +1,5 @@
 use crate::game::{Game, PieceType, Tile};
 use macroquad::prelude::*;
-//use std::{thread, time};
 
 const BOARD_SIZE: f32 = 600.0;
 const SCREEN_EDGE: f32 = 20.0;
@@ -9,8 +8,6 @@ const SCREEN_WIDTH: f32 = BOARD_SIZE + 2.0 * SCREEN_EDGE;
 const TOP_BAR_HEIGHT: f32 = 28.0;
 const SCREEN_HEIGHT: f32 = BOARD_SIZE + TOP_BAR_HEIGHT + 2.0 * SCREEN_EDGE;
 
-//const NUM_TILES: i32 = 7; // TODO: unify board size
-//const TILE_SIZE: f32 = BOARD_SIZE / NUM_TILES as f32;
 const TILE_SIZE: f32 = 85.0;
 const PIECE_SIZE: f32 = TILE_SIZE / 2.5;
 
@@ -46,9 +43,6 @@ impl Display {
         // show fps
         draw_text(format!("FPS: {}", get_fps()).as_str(), 0., 16., 32., WHITE);
 
-        // limit to fps (macroquad will sync up frames with display refresh rate)
-        //thread::sleep(time::Duration::from_millis(20));
-
         next_frame().await;
     }
 
@@ -74,7 +68,6 @@ impl Display {
 //
 
 fn highlight_tile(tile: Tile) {
-    //println!("{}", TILE_SIZE);
     let x = tile_position(tile.r) + 2.0;
     let y = tile_position(tile.c) + 2.0;
     draw_rectangle_lines(x, y, TILE_SIZE - 4.0, TILE_SIZE - 4.0, 2.0, GREEN)

@@ -1,0 +1,51 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Tafl</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+            background: black;
+        }
+
+        #game-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #glcanvas {
+            width: 660px;
+            height: 660px;
+            overflow: hidden;
+            background: black;
+            z-index: 0;
+        }
+
+        #info-container {
+            color: white;
+            padding: 20px;
+            width: 20%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="info-container">
+        <p>Welcome to tafl, you are playing as the attacker (red), click on a piece to see available moves</p>
+    </div>
+    <div id="game-container">
+        <canvas id="glcanvas" tabindex='1'></canvas>
+    </div>
+    <script src="https://not-fl3.github.io/miniquad-samples/mq_js_bundle.js"></script>
+    <script>load("tafl.wasm")</script>
+</body>
+
+</html>

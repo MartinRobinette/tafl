@@ -1,9 +1,7 @@
 use crate::game::{Game, Tile};
-use rand::seq::SliceRandom;
 use rayon::prelude::*;
 
 pub enum AIKind {
-    Random,
     Minimax(u32),
 }
 
@@ -14,7 +12,6 @@ pub struct AIPlayer {
 impl AIPlayer {
     pub fn take_turn(&self, game: &Game) -> (Tile, Tile) {
         match self.kind {
-            AIKind::Random => self.random_turn(game),
             AIKind::Minimax(depth) => self.minimax_turn_rayon(game, depth),
         }
     }
@@ -36,8 +33,6 @@ impl AIPlayer {
         for (src, dest) in game.get_all_valid_moves() {
             let new_game = game.gen_next(src, dest);
             let score = minimax(new_game, depth, std::i32::MIN, std::i32::MAX);
-            //println!("score: {}", score);
-            //println!("depth: {}, score: {}", depth, score);
             if best_dest.is_none() {
                 // init to first move
                 best_src = Some(src);
@@ -73,21 +68,6 @@ impl AIPlayer {
         };
 
         (*best_src, *best_dest)
-    }
-    // // random ai
-    fn random_turn(&self, game: &Game) -> (Tile, Tile) {
-        let mut rng = rand::thread_rng();
-
-        let pieces = friendly_piece_positions(game);
-        loop {
-            let src: Tile = *pieces.choose(&mut rng).unwrap(); // panics if no pieces
-            let options: Vec<(Tile, Tile)> = game.get_valid_moves(src).collect();
-            if options.is_empty() {
-                // loops forever if no possible moves
-                continue;
-            }
-            break *options.choose(&mut rng).unwrap();
-        }
     }
 }
 
@@ -127,24 +107,6 @@ fn minimax(game: Game, depth: u32, mut alpha: i32, mut beta: i32) -> i32 {
         }
         min
     }
-}
-
-// helper for random ai
-fn friendly_piece_positions(game: &Game) -> Vec<Tile> {
-    // TODO: change to iterator?
-    let mut positions = Vec::new();
-    let board_size = game.board_size();
-
-    // TODO: this should not be here
-    for r in 0..board_size {
-        for c in 0..board_size {
-            let tile = (r, c).into();
-            if game.is_player_piece(tile) {
-                positions.push(tile);
-            }
-        }
-    }
-    positions
 }
 
 #[cfg(test)]
