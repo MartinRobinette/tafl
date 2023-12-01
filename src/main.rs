@@ -27,7 +27,7 @@ async fn main() {
 
     // render game once, to show initial state
     display.borrow_mut().draw_game(&game_state.game).await;
-    thread::sleep(time::Duration::from_millis(100));
+    // thread::sleep(time::Duration::from_millis(100));
     display.borrow_mut().draw_game(&game_state.game).await;
 
     // Main graphics / input loop
