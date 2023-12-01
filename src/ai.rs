@@ -33,8 +33,6 @@ impl AIPlayer {
         for (src, dest) in game.get_all_valid_moves() {
             let new_game = game.gen_next(src, dest);
             let score = minimax(new_game, depth, std::i32::MIN, std::i32::MAX);
-            //println!("score: {}", score);
-            //println!("depth: {}, score: {}", depth, score);
             if best_dest.is_none() {
                 // init to first move
                 best_src = Some(src);

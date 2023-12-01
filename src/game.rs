@@ -2,7 +2,6 @@ use std::fmt::Display;
 
 use crate::ai::AIPlayer;
 use crate::human::HumanPlayer;
-// did not want to use async-trait crate
 pub enum Player {
     Human(HumanPlayer),
     AI(AIPlayer),
@@ -40,7 +39,6 @@ pub struct GameState {
     pub game: Game,
     // used for highlighting options and moving pieces
     pub current_selection: Option<Tile>,
-    // ? valid_moves: Vec<Tile>,
     defender_player: Player,
     attacker_player: Player,
 }
@@ -50,7 +48,6 @@ pub struct Action {
     pub dest: Tile,
 }
 
-//pub fn takeTurn()
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub struct Tile {
     pub c: usize,
@@ -63,8 +60,6 @@ impl From<(usize, usize)> for Tile {
     }
 }
 
-// TODO: this needs to change, don't want negatives
-// this can be fixed by adding direction enum
 impl From<(i32, i32)> for Tile {
     fn from((row, col): (i32, i32)) -> Self {
         Tile {
@@ -74,7 +69,7 @@ impl From<(i32, i32)> for Tile {
     }
 }
 
-const BOARD_SIZE: usize = 7; // TODO: unify board size
+const BOARD_SIZE: usize = 7;
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Board(pub [[PieceType; BOARD_SIZE]; BOARD_SIZE]);
 
@@ -123,7 +118,6 @@ impl Display for Board {
     }
 }
 
-// i do not like this
 fn next_tile(src: Tile, dir: (i32, i32)) -> Tile {
     (src.r as i32 + dir.0, src.c as i32 + dir.1).into()
 }
@@ -150,7 +144,7 @@ impl GameState {
             Player::Human(human) => human.player_turn(&self.game).await,
             Player::AI(ai) => ai.take_turn(&self.game),
         };
-        self.game = self.game.gen_next(src, dest); // this also changes turn
+        self.game = self.game.gen_next(src, dest); // this call also changes turn
     }
 
     pub fn current_player(&self) -> &Player {
@@ -222,8 +216,7 @@ impl Game {
         true
     }
     /// Checks for captures caused by given move, and if game has ended
-    /// "update game"
-    /// TODO: change to not mut
+    /// updates game state as changes are detected
     fn check_captures(&mut self, end: Tile) {
         let directions = vec![(0, -1), (0, 1), (1, 0), (-1, 0)];
         for dir in directions {
@@ -241,24 +234,13 @@ impl Game {
                     return;
                 }
             }
-
-            // other win conditions
-            // opponent has no move options
-            // for loc in self.get_enemies() {
-            //     // TODO: use has valid move function
-            //     if !self.get_valid_moves(loc).is_empty() {
-            //         return;
-            //     }
-            // }
         }
+
+        // TODO: check to see if opponent has no remaining moves
+        // rare but could happen
     }
 
     pub fn gen_next(&self, src: Tile, dest: Tile) -> Game {
-        // might want to add validation here for valid move
-        // check end is blank, start is not blank, and start is current players piece
-        // and check valid move function
-        // could integrate selected piece into game struct to not have to recall get valid moves and ensue player piece
-
         let mut game = self.clone();
         game.board.0[dest.r][dest.c] = game.board.0[src.r][src.c];
         game.board.0[src.r][src.c] = PieceType::Blank;
@@ -286,8 +268,7 @@ impl Game {
     }
 
     pub fn board_size(&self) -> usize {
-        // used in display
-        7 // only one board option currently // TODO: unify board size
+        BOARD_SIZE
     }
 
     pub fn tile_on_board(&self, tile: Tile) -> bool {
@@ -345,7 +326,6 @@ impl Game {
             .flat_map(move |dir| self.moves_in_direction(src, *dir).into_iter())
     }
 
-    // remove closure and call function
     pub fn get_all_valid_moves(&self) -> impl Iterator<Item = (Tile, Tile)> + '_ {
         let size = self.board.0.len();
         (0..size).flat_map(move |r| {
@@ -369,6 +349,7 @@ impl Game {
         let defender_score = attacker_score * 2;
         let king_score = defender_score * 10;
         for (r, row) in self.board.0.iter().enumerate() {
+            // check to see if each flank(col or row) as a piece of each type
             let mut has_def = false;
             let mut has_atk = false;
             let mut first_seen: Option<PieceType> = None;
@@ -378,6 +359,7 @@ impl Game {
                     first_seen = Some(*piece);
                 }
                 last_seen = *piece;
+                // get point values of piece at position
                 match piece {
                     PieceType::Defender => {
                         score += defender_score;
@@ -397,6 +379,7 @@ impl Game {
                     PieceType::Blank => (),
                 }
             }
+            // better to be on the outside edges of a given row/col
             if first_seen == Some(PieceType::Attacker) && last_seen == PieceType::Attacker {
                 score -= 2;
             }
