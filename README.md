@@ -1,6 +1,6 @@
 # tafl
 
-talf written in rust, using the brandub board and ruleset
+talf written in rust, using the brandub board and rule set
 
 [macroquad](https://github.com/not-fl3/macroquad) is used to do graphics
 
@@ -12,12 +12,12 @@ Current
 - Can play against ai
 - Graphical display of board
 - multi core usage to speed up ai
+- build to web [hosted](https://tafl.martinrobinette.com)
+- Parameterized Depth (for selecting difficulty) (available but no ui for it)
 
 Possible Future Features
 - Better Graphics
-- Parameterized Depth (for selecting difficulty)
 - Monte Carlo AI
-- build to web
 - tracking how many states were visited for ai comparison
 
 ## Rules
@@ -49,6 +49,6 @@ Taken and modified from http://tafl.cyningstan.com/page/171/brandub
 
 ## AI
 
-The current AI is using minimax with alph beta pruning. It is set to look 4 moves past the current turn.
+The current AI is using minimax with alpha beta pruning. It is set to look 4 moves past the current turn.
 
-The current evaluation function benifits having more pieces and having thoese pieces spread out over the board.
+The current evaluation function benefits having more pieces and having those pieces spread out over the board.
