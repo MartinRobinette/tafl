@@ -12,7 +12,7 @@ Current
 - Can play against ai
 - Graphical display of board
 - multi core usage to speed up ai
-- build to web (and [hosted](https://tafl.martinrobinette.com))
+- build for web
 - Parameterized Depth (for selecting difficulty) (available but no ui for it)
 
 Possible Future Features
